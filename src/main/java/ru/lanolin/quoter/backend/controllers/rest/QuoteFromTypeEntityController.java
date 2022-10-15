@@ -10,6 +10,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/quote-from-type")
+@CrossOrigin(origins = "*")
 public class QuoteFromTypeEntityController {
 
 	private final RestApi<QuoteFromTypeEntity, Integer> quoterFromTypeEntityService;
