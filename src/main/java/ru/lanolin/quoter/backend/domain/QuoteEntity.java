@@ -1,40 +1,40 @@
 package ru.lanolin.quoter.backend.domain;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.Hibernate;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
-import java.util.Set;
 
 @Getter
 @Setter
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "quotes_entity")
+@Table(name = "quote_entity")
 public class QuoteEntity {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
-	private String text;
-	@OneToOne
-	private UserEntity author;
-	//	@OneToOne
-	//	private UserEntity lastEditor;
-	@OneToOne
-	private QuoterFromTypeEntity fromType;
-	private String fromName;
 
-	@ElementCollection(targetClass = UserRoles.class)
-	@ToString.Exclude
-	@Enumerated(EnumType.STRING)
-	@Column(name = "roles")
-	private Set<UserRoles> roles = new java.util.LinkedHashSet<>();
+	@NotBlank
+	@NotEmpty
+	@NotNull
+	private String text;
+
+	@NotNull
+	@OneToOne
+	@JoinColumn
+	private UserEntity author;
+
+	@NotNull
+	@OneToOne
+	@JoinColumn
+	private QuoteFromEntity fromName;
 
 	@Override
 	public boolean equals(Object o) {

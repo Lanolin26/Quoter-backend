@@ -1,26 +1,24 @@
 package ru.lanolin.quoter.backend.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.*;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.Hibernate;
-import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-import java.util.HashSet;
 import java.util.Objects;
-import java.util.Set;
 
 @Getter
 @Setter
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "user_entity")
-public class UserEntity {
+@Table(name = "quote_from_entity")
+public class QuoteFromEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,24 +27,12 @@ public class UserEntity {
 	@NotBlank
 	@NotEmpty
 	@NotNull
-	private String login;
+	private String fromName;
 
-	@NotBlank
-	@NotEmpty
 	@NotNull
-	private String name;
-
-	@Size(min = 6)
-	@NotBlank
-	@NotEmpty
-	@NotNull
-	private String password;
-
-	private String img;
-
-	@Enumerated(EnumType.STRING)
-	@ElementCollection
-	private Set<UserRoles> roles = new HashSet<>();
+	@OneToOne
+	@JoinColumn
+	private QuoteFromTypeEntity type;
 
 	@Override
 	public boolean equals(Object o) {
@@ -54,7 +40,7 @@ public class UserEntity {
 			return true;
 		if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o))
 			return false;
-		UserEntity that = (UserEntity) o;
+		QuoteFromEntity that = (QuoteFromEntity) o;
 		return id != null && Objects.equals(id, that.id);
 	}
 

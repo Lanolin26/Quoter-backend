@@ -9,43 +9,43 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/quoter")
+@RequestMapping("/api/quote")
 @CrossOrigin(origins = "*")
-public class QuoterEntityController {
+public class QuoteEntityController {
 
 	private final RestApi<QuoteEntity, Integer> quoterEntityService;
 
 	@Autowired
-	public QuoterEntityController(RestApi<QuoteEntity, Integer> quoterEntityService) {
+	public QuoteEntityController(RestApi<QuoteEntity, Integer> quoterEntityService) {
 		this.quoterEntityService = quoterEntityService;
 	}
 
-	@GetMapping(value = "/", produces = "application/json")
+	@GetMapping(value = "", produces = "application/json")
 	public List<QuoteEntity> findAll() {
 		return quoterEntityService.findAll();
 	}
 
-	@GetMapping(value = "/{id}", produces = "application/json")
+	@GetMapping(value = "{id}", produces = "application/json")
 	public Optional<QuoteEntity> getOne(@PathVariable Integer id) {
 		return quoterEntityService.getOne(id);
 	}
 
-	@PutMapping(value = "/", consumes = "application/json", produces = "application/json")
+	@PutMapping(value = "", consumes = "application/json", produces = "application/json")
 	public QuoteEntity create(@RequestBody QuoteEntity entity) {
 		return quoterEntityService.create(entity);
 	}
 
-	@PostMapping(value = "/{id}", consumes = "application/json", produces = "application/json")
+	@PostMapping(value = "{id}", consumes = "application/json", produces = "application/json")
 	public QuoteEntity update(@PathVariable Integer id, @RequestBody QuoteEntity entity) {
 		return quoterEntityService.update(id, entity);
 	}
 
-	@DeleteMapping(value = "/", consumes = "application/json")
+	@DeleteMapping(value = "", consumes = "application/json")
 	public void delete(@RequestBody QuoteEntity entity) {
 		quoterEntityService.delete(entity);
 	}
 
-	@DeleteMapping(value = "/{id}")
+	@DeleteMapping(value = "{id}")
 	public void deleteById(@PathVariable Integer id) {
 		quoterEntityService.deleteById(id);
 	}

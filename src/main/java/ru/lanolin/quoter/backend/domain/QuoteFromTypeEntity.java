@@ -4,6 +4,9 @@ import lombok.*;
 import org.hibernate.Hibernate;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.Objects;
 
 @Getter
@@ -11,12 +14,16 @@ import java.util.Objects;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "quoter_type_entity")
-public class QuoterFromTypeEntity {
+@Table(name = "quote_from_type_entity")
+public class QuoteFromTypeEntity {
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
+
+	@NotBlank
+	@NotEmpty
+	@NotNull
 	private String type;
 
 	@Override
@@ -25,7 +32,7 @@ public class QuoterFromTypeEntity {
 			return true;
 		if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o))
 			return false;
-		QuoterFromTypeEntity that = (QuoterFromTypeEntity) o;
+		QuoteFromTypeEntity that = (QuoteFromTypeEntity) o;
 		return id != null && Objects.equals(id, that.id);
 	}
 
