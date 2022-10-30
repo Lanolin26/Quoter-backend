@@ -34,7 +34,7 @@ public class QuoteEntity {
 	@NotNull
 	@OneToOne
 	@JoinColumn
-	private QuoteFromEntity fromName;
+	private QuoteSource source;
 
 	@Override
 	public boolean equals(Object o) {

@@ -44,6 +44,12 @@ public class QuoteEntityService implements RestApi<QuoteEntity, Integer> {
 		} else {
 			QuoteEntity inDbEntity = inDb.get();
 			BeanUtils.copyProperties(entity, inDbEntity, "id");
+			inDbEntity.setText(
+					Optional.ofNullable(inDbEntity.getText())
+							.map(text -> text.replaceAll("&"+"nbsp;", " "))
+							.map(text -> text.replaceAll(String.valueOf((char) 160), " "))
+							.orElse(null));
+			repo.save(inDbEntity);
 			return inDbEntity;
 		}
 	}

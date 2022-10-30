@@ -1,6 +1,9 @@
 package ru.lanolin.quoter.backend.domain;
 
-import lombok.*;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
 import org.hibernate.Hibernate;
 
 import javax.persistence.*;
@@ -14,8 +17,8 @@ import java.util.Objects;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@Table(name = "quote_from_type_entity")
-public class QuoteFromTypeEntity {
+@Table(name = "quote_source_entity")
+public class QuoteSource {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +27,12 @@ public class QuoteFromTypeEntity {
 	@NotBlank
 	@NotEmpty
 	@NotNull
-	private String type;
+	private String sourceName;
+
+	@NotNull
+	@OneToOne
+	@JoinColumn
+	private QuoteSourceType type;
 
 	@Override
 	public boolean equals(Object o) {
@@ -32,7 +40,7 @@ public class QuoteFromTypeEntity {
 			return true;
 		if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o))
 			return false;
-		QuoteFromTypeEntity that = (QuoteFromTypeEntity) o;
+		QuoteSource that = (QuoteSource) o;
 		return id != null && Objects.equals(id, that.id);
 	}
 

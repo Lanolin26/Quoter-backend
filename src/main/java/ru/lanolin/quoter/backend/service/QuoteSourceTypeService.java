@@ -3,54 +3,54 @@ package ru.lanolin.quoter.backend.service;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.lanolin.quoter.backend.domain.QuoteFromTypeEntity;
-import ru.lanolin.quoter.backend.repo.QuoteFromTypeEntityRepository;
+import ru.lanolin.quoter.backend.domain.QuoteSourceType;
+import ru.lanolin.quoter.backend.repo.QuoteSourceTypeRepository;
 import ru.lanolin.quoter.backend.util.RestApi;
 
 import java.util.List;
 import java.util.Optional;
 
 @Service
-public class QuoteFromTypeEntityService implements RestApi<QuoteFromTypeEntity, Integer> {
+public class QuoteSourceTypeService implements RestApi<QuoteSourceType, Integer> {
 
-	private final QuoteFromTypeEntityRepository repo;
+	private final QuoteSourceTypeRepository repo;
 
 	@Autowired
-	public QuoteFromTypeEntityService(QuoteFromTypeEntityRepository repo) {
+	public QuoteSourceTypeService(QuoteSourceTypeRepository repo) {
 		this.repo = repo;
 	}
 
-
 	@Override
-	public List<QuoteFromTypeEntity> findAll() {
+	public List<QuoteSourceType> findAll() {
 		return repo.findAll();
 	}
 
 	@Override
-	public Optional<QuoteFromTypeEntity> getOne(Integer id) {
+	public Optional<QuoteSourceType> getOne(Integer id) {
 		return repo.findById(id);
 	}
 
 	@Override
-	public QuoteFromTypeEntity create(QuoteFromTypeEntity entity) {
+	public QuoteSourceType create(QuoteSourceType entity) {
 		repo.save(entity);
 		return entity;
 	}
 
 	@Override
-	public QuoteFromTypeEntity update(Integer id, QuoteFromTypeEntity entity) {
-		Optional<QuoteFromTypeEntity> inDb = getOne(id);
+	public QuoteSourceType update(Integer id, QuoteSourceType entity) {
+		Optional<QuoteSourceType> inDb = getOne(id);
 		if (inDb.isEmpty()) {
 			return create(entity);
 		} else {
-			QuoteFromTypeEntity inDbEntity = inDb.get();
+			QuoteSourceType inDbEntity = inDb.get();
 			BeanUtils.copyProperties(entity, inDbEntity, "id");
+			repo.save(inDbEntity);
 			return inDbEntity;
 		}
 	}
 
 	@Override
-	public void delete(QuoteFromTypeEntity entity) {
+	public void delete(QuoteSourceType entity) {
 		deleteById(entity.getId());
 	}
 

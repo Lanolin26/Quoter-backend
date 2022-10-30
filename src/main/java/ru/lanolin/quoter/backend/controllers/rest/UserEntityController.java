@@ -10,6 +10,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/user")
+@CrossOrigin(origins = "*")
 public class UserEntityController {
 
 	private final RestApi<UserEntity, Integer> userEntityService;
