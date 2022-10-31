@@ -1,6 +1,10 @@
 package ru.lanolin.quoter.backend.controllers.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.SortDefault;
 import org.springframework.web.bind.annotation.*;
 import ru.lanolin.quoter.backend.domain.QuoteEntity;
 import ru.lanolin.quoter.backend.util.RestApi;
@@ -18,6 +22,11 @@ public class QuoteEntityController {
 	@Autowired
 	public QuoteEntityController(RestApi<QuoteEntity, Integer> quoterEntityService) {
 		this.quoterEntityService = quoterEntityService;
+	}
+
+	@GetMapping(value = "", params = { "page", "size" }, produces = "application/json")
+	public Page<QuoteEntity> findAllWithPagination(@SortDefault(sort = "id", direction = Sort.Direction.ASC) Pageable page) {
+		return quoterEntityService.findAll(page);
 	}
 
 	@GetMapping(value = "", produces = "application/json")

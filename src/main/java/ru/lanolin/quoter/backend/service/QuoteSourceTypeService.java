@@ -21,6 +21,12 @@ public class QuoteSourceTypeService implements RestApi<QuoteSourceType, Integer>
 	}
 
 	@Override
+	@SuppressWarnings({ "unchecked" })
+	public QuoteSourceTypeRepository getRepo() {
+		return repo;
+	}
+
+	@Override
 	public List<QuoteSourceType> findAll() {
 		return repo.findAll();
 	}

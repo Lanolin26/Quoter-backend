@@ -21,6 +21,12 @@ public class QuoteEntityService implements RestApi<QuoteEntity, Integer> {
 	}
 
 	@Override
+	@SuppressWarnings({"unchecked"})
+	public QuoteEntityRepository getRepo() {
+		return repo;
+	}
+
+	@Override
 	public List<QuoteEntity> findAll() {
 		return repo.findAll();
 	}
@@ -46,7 +52,7 @@ public class QuoteEntityService implements RestApi<QuoteEntity, Integer> {
 			BeanUtils.copyProperties(entity, inDbEntity, "id");
 			inDbEntity.setText(
 					Optional.ofNullable(inDbEntity.getText())
-							.map(text -> text.replaceAll("&"+"nbsp;", " "))
+							.map(text -> text.replaceAll("&" + "nbsp;", " "))
 							.map(text -> text.replaceAll(String.valueOf((char) 160), " "))
 							.orElse(null));
 			repo.save(inDbEntity);

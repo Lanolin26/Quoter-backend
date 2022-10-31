@@ -18,6 +18,12 @@ public class QuoteSourceService implements RestApi<QuoteSource, Integer> {
 	}
 
 	@Override
+	@SuppressWarnings({"unchecked"})
+	public QuoteSourceRepository getRepo() {
+		return repo;
+	}
+
+	@Override
 	public List<QuoteSource> findAll() {
 		return repo.findAll();
 	}
@@ -42,7 +48,6 @@ public class QuoteSourceService implements RestApi<QuoteSource, Integer> {
 			QuoteSource inDbEntity = inDb.get();
 			inDbEntity.setSourceName(entity.getSourceName());
 			inDbEntity.getType().setId(entity.getType().getId());
-			//			BeanUtils.copyProperties(entity, inDbEntity, "id");
 			repo.save(inDbEntity);
 			return inDbEntity;
 		}
