@@ -5,9 +5,6 @@ import ru.lanolin.quoter.backend.domain.QuoteSource;
 import ru.lanolin.quoter.backend.repo.QuoteSourceRepository;
 import ru.lanolin.quoter.backend.util.RestApi;
 
-import java.util.List;
-import java.util.Optional;
-
 @Service
 public class QuoteSourceService implements RestApi<QuoteSource, Integer> {
 
@@ -18,48 +15,14 @@ public class QuoteSourceService implements RestApi<QuoteSource, Integer> {
 	}
 
 	@Override
-	@SuppressWarnings({"unchecked"})
+	@SuppressWarnings({ "unchecked" })
 	public QuoteSourceRepository getRepo() {
 		return repo;
 	}
 
 	@Override
-	public List<QuoteSource> findAll() {
-		return repo.findAll();
-	}
-
-	@Override
-	public Optional<QuoteSource> getOne(Integer id) {
-		return repo.findById(id);
-	}
-
-	@Override
-	public QuoteSource create(QuoteSource entity) {
-		repo.save(entity);
-		return entity;
-	}
-
-	@Override
-	public QuoteSource update(Integer id, QuoteSource entity) {
-		Optional<QuoteSource> inDb = getOne(id);
-		if (inDb.isEmpty()) {
-			return create(entity);
-		} else {
-			QuoteSource inDbEntity = inDb.get();
-			inDbEntity.setSourceName(entity.getSourceName());
-			inDbEntity.getType().setId(entity.getType().getId());
-			repo.save(inDbEntity);
-			return inDbEntity;
-		}
-	}
-
-	@Override
-	public void delete(QuoteSource entity) {
-		deleteById(entity.getId());
-	}
-
-	@Override
-	public void deleteById(Integer id) {
-		repo.deleteById(id);
+	public void copyProperties(QuoteSource entity, QuoteSource inDbEntity) {
+		inDbEntity.setSourceName(entity.getSourceName());
+		inDbEntity.getType().setId(entity.getType().getId());
 	}
 }

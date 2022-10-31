@@ -3,7 +3,7 @@ package ru.lanolin.quoter.backend.controllers.rest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.lanolin.quoter.backend.domain.UserEntity;
-import ru.lanolin.quoter.backend.util.RestApi;
+import ru.lanolin.quoter.backend.service.UserEntityService;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,10 +13,10 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class UserEntityController {
 
-	private final RestApi<UserEntity, Integer> userEntityService;
+	private final UserEntityService userEntityService;
 
 	@Autowired
-	public UserEntityController(RestApi<UserEntity, Integer> userEntityService) {
+	public UserEntityController(UserEntityService userEntityService) {
 		this.userEntityService = userEntityService;
 	}
 

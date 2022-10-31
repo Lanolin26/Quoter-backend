@@ -7,7 +7,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.SortDefault;
 import org.springframework.web.bind.annotation.*;
 import ru.lanolin.quoter.backend.domain.QuoteEntity;
-import ru.lanolin.quoter.backend.util.RestApi;
+import ru.lanolin.quoter.backend.service.QuoteEntityService;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,15 +17,16 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class QuoteEntityController {
 
-	private final RestApi<QuoteEntity, Integer> quoterEntityService;
+	private final QuoteEntityService quoterEntityService;
 
 	@Autowired
-	public QuoteEntityController(RestApi<QuoteEntity, Integer> quoterEntityService) {
+	public QuoteEntityController(QuoteEntityService quoterEntityService) {
 		this.quoterEntityService = quoterEntityService;
 	}
 
 	@GetMapping(value = "", params = { "page", "size" }, produces = "application/json")
-	public Page<QuoteEntity> findAllWithPagination(@SortDefault(sort = "id", direction = Sort.Direction.ASC) Pageable page) {
+	public Page<QuoteEntity> findAllWithPagination(
+			@SortDefault(sort = "id", direction = Sort.Direction.ASC) Pageable page) {
 		return quoterEntityService.findAll(page);
 	}
 

@@ -7,7 +7,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.SortDefault;
 import org.springframework.web.bind.annotation.*;
 import ru.lanolin.quoter.backend.domain.QuoteSourceType;
-import ru.lanolin.quoter.backend.util.RestApi;
+import ru.lanolin.quoter.backend.service.QuoteSourceTypeService;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,10 +17,10 @@ import java.util.Optional;
 @CrossOrigin(origins = "*")
 public class QuoteSourceTypeController {
 
-	private final RestApi<QuoteSourceType, Integer> quoteSourceTypeService;
+	private final QuoteSourceTypeService quoteSourceTypeService;
 
 	@Autowired
-	public QuoteSourceTypeController(RestApi<QuoteSourceType, Integer> quoteSourceTypeService) {
+	public QuoteSourceTypeController(QuoteSourceTypeService quoteSourceTypeService) {
 		this.quoteSourceTypeService = quoteSourceTypeService;
 	}
 
