@@ -1,5 +1,7 @@
 database
 tmp
+requests
+.jpb
 
 HELP.md
 target/

@@ -1,7 +1,0 @@
-###
-
-GET {{server}}/api/quoter-from-type/
-Accept: application/json
-
-###
-
