@@ -2,6 +2,7 @@ package ru.lanolin.quoter.backend.domain;
 
 import lombok.*;
 import org.hibernate.Hibernate;
+import ru.lanolin.quoter.backend.domain.dto.QuoteSourceTypeDto;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -13,18 +14,24 @@ import java.util.Objects;
 @Setter
 @ToString
 @RequiredArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "quote_source_type_entity")
-public class QuoteSourceType {
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+public class QuoteSourceType extends IdentificationClass<QuoteSourceTypeDto>{
 
 	@NotBlank
 	@NotEmpty
 	@NotNull
 	private String type;
+
+	public QuoteSourceType(Integer id) {
+		super(id);
+	}
+
+	public QuoteSourceType(Integer id, String type) {
+		super(id);
+		this.type = type;
+	}
 
 	@Override
 	public boolean equals(Object o) {
@@ -39,5 +46,10 @@ public class QuoteSourceType {
 	@Override
 	public int hashCode() {
 		return getClass().hashCode();
+	}
+
+	@Override
+	public QuoteSourceTypeDto dto() {
+		return new QuoteSourceTypeDto(id, type);
 	}
 }

@@ -2,6 +2,7 @@ package ru.lanolin.quoter.backend.domain;
 
 import lombok.*;
 import org.hibernate.Hibernate;
+import ru.lanolin.quoter.backend.domain.dto.QuoteEntityDto;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -13,13 +14,10 @@ import java.util.Objects;
 @Setter
 @ToString
 @RequiredArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "quote_entity")
-public class QuoteEntity {
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+public class QuoteEntity extends IdentificationClass<QuoteEntityDto>{
 
 	@NotBlank
 	@NotEmpty
@@ -36,6 +34,17 @@ public class QuoteEntity {
 	@JoinColumn
 	private QuoteSource source;
 
+	public QuoteEntity(Integer id) {
+		super(id);
+	}
+
+	public QuoteEntity(Integer id, String text, UserEntity author, QuoteSource source) {
+		super(id);
+		this.text = text;
+		this.author = author;
+		this.source = source;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)
@@ -49,5 +58,12 @@ public class QuoteEntity {
 	@Override
 	public int hashCode() {
 		return getClass().hashCode();
+	}
+
+	@Override
+	public QuoteEntityDto dto() {
+		return new QuoteEntityDto(
+				this.id, this.text, this.author.dto(), this.source.dto()
+		);
 	}
 }

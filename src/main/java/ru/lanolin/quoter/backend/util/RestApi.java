@@ -5,23 +5,38 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import ru.lanolin.quoter.backend.domain.IdentificationClass;
 import ru.lanolin.quoter.backend.exceptions.domain.IncorrectField;
 
 import java.util.List;
 import java.util.Optional;
 
-public interface RestApi<E, ID extends Number> {
+
+/**
+ * The interface Rest api.
+ *
+ * @param <E>
+ * 		Entity объект
+ * @param <ID>
+ * 		Id класс в {@link E} параметре
+ */
+public interface RestApi<E extends IdentificationClass<?>, ID extends Number> {
 
 	default Page<E> findAll(Pageable page) {
-		return getRepo().findAll(page);
+		return getRepo()
+				.findAll(page);
 	}
 
 	default List<E> findAll() {
-		return getRepo().findAll();
+		return getRepo()
+				.findAll()
+				.stream()
+				.toList();
 	}
 
 	default Optional<E> getOne(ID id) {
-		return getRepo().findById(id);
+		return getRepo()
+				.findById(id);
 	}
 
 	default E create(@NonNull E entity) {
@@ -30,13 +45,12 @@ public interface RestApi<E, ID extends Number> {
 	}
 
 	default E update(ID id, @NonNull E entity) {
-		Optional<E> inDb = getOne(id);
+		Optional<E> inDb = getRepo().findById(id);
 		if (inDb.isEmpty()) {
 			return create(entity);
 		} else {
 			E inDbEntity = inDb.get();
 			copyProperties(entity, inDbEntity);
-			checkCorrect(inDbEntity);
 			return getRepo().save(inDbEntity);
 		}
 	}

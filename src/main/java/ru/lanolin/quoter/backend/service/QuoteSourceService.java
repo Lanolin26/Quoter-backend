@@ -2,6 +2,7 @@ package ru.lanolin.quoter.backend.service;
 
 import org.springframework.stereotype.Service;
 import ru.lanolin.quoter.backend.domain.QuoteSource;
+import ru.lanolin.quoter.backend.exceptions.domain.IncorrectField;
 import ru.lanolin.quoter.backend.repo.QuoteSourceRepository;
 import ru.lanolin.quoter.backend.util.RestApi;
 
@@ -24,5 +25,10 @@ public class QuoteSourceService implements RestApi<QuoteSource, Integer> {
 	public void copyProperties(QuoteSource entity, QuoteSource inDbEntity) {
 		inDbEntity.setSourceName(entity.getSourceName());
 		inDbEntity.getType().setId(entity.getType().getId());
+	}
+
+	@Override
+	public void checkCorrect(QuoteSource entity) throws IncorrectField {
+		entity.setId(null);
 	}
 }

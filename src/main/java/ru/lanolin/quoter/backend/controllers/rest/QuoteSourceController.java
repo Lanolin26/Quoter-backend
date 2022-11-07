@@ -5,12 +5,13 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.lanolin.quoter.backend.domain.QuoteSource;
+import ru.lanolin.quoter.backend.domain.dto.QuoteSourceDto;
 import ru.lanolin.quoter.backend.service.QuoteSourceService;
 
 @RestController
 @RequestMapping("/api/quote-source")
 @CrossOrigin(origins = "*")
-public class QuoteSourceController implements RestApiController<QuoteSource, Integer> {
+public class QuoteSourceController implements RestApiController<QuoteSource, QuoteSourceDto, Integer> {
 
 	private final QuoteSourceService quoteSourceService;
 

@@ -1,10 +1,8 @@
 package ru.lanolin.quoter.backend.domain;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.Hibernate;
+import ru.lanolin.quoter.backend.domain.dto.UserEntityDto;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
@@ -19,13 +17,10 @@ import java.util.Set;
 @Setter
 @ToString
 @RequiredArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "user_entity")
-public class UserEntity {
-
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Integer id;
+public class UserEntity extends IdentificationClass<UserEntityDto> {
 
 	@NotBlank
 	@NotEmpty
@@ -49,6 +44,19 @@ public class UserEntity {
 	@ElementCollection
 	private Set<UserRoles> roles = new HashSet<>();
 
+	public UserEntity(Integer id) {
+		super(id);
+	}
+
+	public UserEntity(Integer id, String login, String name, String password, String img, Set<UserRoles> roles) {
+		super(id);
+		this.login = login;
+		this.name = name;
+		this.password = password;
+		this.img = img;
+		this.roles = roles;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)
@@ -62,5 +70,10 @@ public class UserEntity {
 	@Override
 	public int hashCode() {
 		return getClass().hashCode();
+	}
+
+	@Override
+	public UserEntityDto dto() {
+		return new UserEntityDto(id, login, name, password, img, roles);
 	}
 }
