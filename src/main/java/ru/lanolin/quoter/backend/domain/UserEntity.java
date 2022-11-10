@@ -20,7 +20,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Entity
 @Table(name = "user_entity")
-public class UserEntity extends IdentificationClass<UserEntityDto> {
+public class UserEntity extends IdentificationClass<Integer, UserEntityDto> {
 
 	@NotBlank
 	@NotEmpty

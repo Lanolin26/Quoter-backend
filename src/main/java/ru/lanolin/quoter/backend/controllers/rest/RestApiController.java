@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RestApiController<
-		E extends IdentificationClass<DTO>,
+		E extends IdentificationClass<ID, DTO>,
 		DTO extends ConverterDtoToEntity<E>,
 		ID extends Number> {
 

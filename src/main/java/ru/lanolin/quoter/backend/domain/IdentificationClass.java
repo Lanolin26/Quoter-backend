@@ -13,11 +13,11 @@ import javax.persistence.MappedSuperclass;
 @AllArgsConstructor
 @NoArgsConstructor
 @MappedSuperclass
-public abstract class IdentificationClass<DTO> {
+public abstract class IdentificationClass<ID extends Number, DTO> {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	protected Integer id;
+	protected ID id;
 
 	public abstract DTO dto();
 

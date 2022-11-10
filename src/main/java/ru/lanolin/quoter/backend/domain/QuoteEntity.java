@@ -4,7 +4,10 @@ import lombok.*;
 import org.hibernate.Hibernate;
 import ru.lanolin.quoter.backend.domain.dto.QuoteEntityDto;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -17,7 +20,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @Entity
 @Table(name = "quote_entity")
-public class QuoteEntity extends IdentificationClass<QuoteEntityDto>{
+public class QuoteEntity extends IdentificationClass<Integer, QuoteEntityDto>{
 
 	@NotBlank
 	@NotEmpty
