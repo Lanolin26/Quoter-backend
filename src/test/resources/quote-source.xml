@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <quote_source_entity id="1" source_name="Вы призвали не того" type_id="1" />
+    <quote_source_entity id="2" source_name="Unknown" type_id="6" />
+    <quote_source_entity id="3" source_name="Камень" type_id="1" />
+    <quote_source_entity id="4" source_name="Пасть" type_id="1" />
+    <quote_source_entity id="5" source_name="Игра Кота" type_id="1" />
+    <quote_source_entity id="6" source_name="Завуч" type_id="1" />
+    <quote_source_entity id="7" source_name="Хроники Некроманта-Программиста" type_id="1" />
+    <quote_source_entity id="8" source_name="Некий геройский Акселлератор" type_id="1" />
+    <quote_source_entity id="9" source_name="Дело Черного мага" type_id="1" />
+    <quote_source_entity id="10" source_name="Старшая школа Гакко" type_id="1" />
+    <quote_source_entity id="11" source_name="Алхимик" type_id="1" />
+    <quote_source_entity id="12" source_name="Сила рода" type_id="1" />
+</dataset>

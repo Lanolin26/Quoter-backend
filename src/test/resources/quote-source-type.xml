@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dataset>
+    <quote_source_type_entity id="1" type="Книга" />
+    <quote_source_type_entity id="2" type="Аниме" />
+    <quote_source_type_entity id="3" type="Фильм" />
+    <quote_source_type_entity id="4" type="Сериал" />
+    <quote_source_type_entity id="5" type="Мультфильм" />
+    <quote_source_type_entity id="6" type="Unknown Type" />
+</dataset>
