@@ -8,6 +8,9 @@ import it.ru.lanolin.quoter.util.Utils;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.lanolin.quoter.QuotersLibraryApplication;
 import ru.lanolin.quoter.backend.domain.UserEntity;
 import ru.lanolin.quoter.backend.domain.UserRoles;
+import ru.lanolin.quoter.backend.exceptions.domain.IncorrectField;
 import ru.lanolin.quoter.backend.service.UserEntityService;
 
 import java.sql.SQLException;
@@ -75,7 +79,18 @@ class UserEntityServiceTest {
 		);
 	}
 
-	// TODO: Сделать тесты, на поверку ввода параметров: несущ. элемента и т.д.
+	private UserEntity getUserEntity(int id) {
+		// WHEN
+		Optional<UserEntity> one = userEntityService.getOne(id);
+		// THEN
+		assumeTrue(one.isPresent());
+
+		// WHEN
+		UserEntity userEntity = one.get();
+		// THEN
+		assumeTrue(id == userEntity.getId());
+		return userEntity;
+	}
 
 	@Test
 	@Tag("exist_entries")
@@ -108,7 +123,7 @@ class UserEntityServiceTest {
 		UserEntity newValue = new UserEntity(null, login, name, password, null, roles);
 		// WHEN
 		int size = userEntityService.findAll().size();
-		UserEntity savedValue = userEntityService.create(newValue);
+		UserEntity savedValue = Assertions.assertDoesNotThrow(() -> userEntityService.create(newValue));
 		int newSize = userEntityService.findAll().size();
 		// THEN
 		assertEquals(1, Math.abs(size - newSize));
@@ -122,8 +137,6 @@ class UserEntityServiceTest {
 		);
 	}
 
-	//TODO: new entry with different vars
-
 	@Test
 	@Tag("update_entry")
 	@DisplayName("Обновление поля name")
@@ -131,20 +144,10 @@ class UserEntityServiceTest {
 		// GIVEN
 		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
 		String appendValue = Utils.randomStringWithLength(5);
-
 		// WHEN
-		Optional<UserEntity> one = userEntityService.getOne(id);
-		// THEN
-		assumeTrue(one.isPresent());
-
-		// WHEN
-		UserEntity userEntity = one.get();
-		// THEN
-		assumeTrue(id == userEntity.getId());
-
-		// WHEN
+		UserEntity userEntity = getUserEntity(id);
 		userEntity.setName(userEntity.getName() + appendValue);
-		UserEntity update = userEntityService.update(id, userEntity);
+		UserEntity update = Assertions.assertDoesNotThrow(() -> userEntityService.update(id, userEntity));
 		// THEN
 		assertAll(
 				() -> assertEquals(id, update.getId()),
@@ -166,18 +169,9 @@ class UserEntityServiceTest {
 		String appendValue = Utils.randomStringWithLength(5);
 
 		// WHEN
-		Optional<UserEntity> one = userEntityService.getOne(id);
-		// THEN
-		assumeTrue(one.isPresent());
-
-		// WHEN
-		UserEntity userEntity = one.get();
-		// THEN
-		assumeTrue(id == userEntity.getId());
-
-		// WHEN
+		UserEntity userEntity = getUserEntity(id);
 		userEntity.setLogin(userEntity.getLogin() + appendValue);
-		UserEntity update = userEntityService.update(id, userEntity);
+		UserEntity update = Assertions.assertDoesNotThrow(() -> userEntityService.update(id, userEntity));
 		// THEN
 		assertAll(
 				() -> assertEquals(id, update.getId()),
@@ -199,18 +193,9 @@ class UserEntityServiceTest {
 		String appendValue = Utils.randomStringWithLength(5);
 
 		// WHEN
-		Optional<UserEntity> one = userEntityService.getOne(id);
-		// THEN
-		assumeTrue(one.isPresent());
-
-		// WHEN
-		UserEntity userEntity = one.get();
-		// THEN
-		assumeTrue(id == userEntity.getId());
-
-		// WHEN
+		UserEntity userEntity = getUserEntity(id);
 		userEntity.setPassword(userEntity.getPassword() + appendValue);
-		UserEntity update = userEntityService.update(id, userEntity);
+		UserEntity update = Assertions.assertDoesNotThrow(() -> userEntityService.update(id, userEntity));
 		// THEN
 		assertAll(
 				() -> assertEquals(id, update.getId()),
@@ -230,20 +215,10 @@ class UserEntityServiceTest {
 		// GIVEN
 		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
 		String value = Utils.randomStringWithLength(5);
-
 		// WHEN
-		Optional<UserEntity> one = userEntityService.getOne(id);
-		// THEN
-		assumeTrue(one.isPresent());
-
-		// WHEN
-		UserEntity userEntity = one.get();
-		// THEN
-		assumeTrue(id == userEntity.getId());
-
-		// WHEN
+		UserEntity userEntity = getUserEntity(id);
 		userEntity.setImg(value);
-		UserEntity update = userEntityService.update(id, userEntity);
+		UserEntity update = Assertions.assertDoesNotThrow(() -> userEntityService.update(id, userEntity));
 		// THEN
 		assertAll(
 				() -> assertEquals(id, update.getId()),
@@ -265,20 +240,10 @@ class UserEntityServiceTest {
 		// GIVEN
 		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
 		UserRoles roleAdd = UserRoles.ADMIN;
-
 		// WHEN
-		Optional<UserEntity> one = userEntityService.getOne(id);
-		// THEN
-		assumeTrue(one.isPresent());
-
-		// WHEN
-		UserEntity userEntity = one.get();
-		// THEN
-		assumeTrue(id == userEntity.getId());
-
-		// WHEN
+		UserEntity userEntity = getUserEntity(id);
 		userEntity.getRoles().add(roleAdd);
-		UserEntity update = userEntityService.update(id, userEntity);
+		UserEntity update = Assertions.assertDoesNotThrow(() -> userEntityService.update(id, userEntity));
 
 		assertAll(
 				() -> assertEquals(id, update.getId()),
@@ -299,20 +264,10 @@ class UserEntityServiceTest {
 		// GIVEN
 		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
 		UserRoles roleDel = UserRoles.EDITOR;
-
 		// WHEN
-		Optional<UserEntity> one = userEntityService.getOne(id);
-		// THEN
-		assumeTrue(one.isPresent());
-
-		// WHEN
-		UserEntity userEntity = one.get();
-		// THEN
-		assumeTrue(id == userEntity.getId());
-
-		// WHEN
+		UserEntity userEntity = getUserEntity(id);
 		userEntity.getRoles().remove(roleDel);
-		UserEntity update = userEntityService.update(id, userEntity);
+		UserEntity update = Assertions.assertDoesNotThrow(() -> userEntityService.update(id, userEntity));
 
 		assertAll(
 				() -> assertEquals(id, update.getId()),
@@ -337,7 +292,7 @@ class UserEntityServiceTest {
 
 		// WHEN
 		int beforeDel = userEntityService.findAll().size();
-		userEntityService.deleteById(id);
+		Assertions.assertDoesNotThrow(() -> userEntityService.deleteById(id));
 		int afterDel = userEntityService.findAll().size();
 
 		Optional<UserEntity> deletedEntity = userEntityService.getOne(id);
@@ -358,12 +313,78 @@ class UserEntityServiceTest {
 
 		// WHEN
 		int beforeDel = userEntityService.findAll().size();
-		userEntityService.delete(deleteEntity);
+		Assertions.assertDoesNotThrow(() -> userEntityService.delete(deleteEntity));
 		int afterDel = userEntityService.findAll().size();
 		Optional<UserEntity> deletedEntity = userEntityService.getOne(id);
 		// THEN
 		assertEquals(1, Math.abs(beforeDel - afterDel));
 		assertFalse(deletedEntity.isPresent());
+	}
+
+	// TODO: Сделать тесты, на поверку ввода параметров: несущ. элемента и т.д.
+
+
+	@ParameterizedTest
+	@Tag("update_entry")
+	@NullAndEmptySource
+	@DisplayName("_12_updateNameWithErrorValue")
+	void _11_updateLoginWithErrorValue(String newValue) {
+		// GIVEN
+		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
+		UserEntity userEntity = getUserEntity(id);
+		// WHEN
+		userEntity.setLogin(newValue);
+		// THEN
+		assertThrows(IncorrectField.class, () -> userEntityService.update(id, userEntity));
+	}
+
+	@ParameterizedTest
+	@Tag("update_entry")
+	@NullAndEmptySource
+	@DisplayName("_12_updateNameWithErrorValue")
+	void _12_updateNameWithErrorValue(String newValue) {
+		// GIVEN
+		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
+		UserEntity userEntity = getUserEntity(id);
+		// WHEN
+		userEntity.setName(newValue);
+		// THEN
+		assertThrows(IncorrectField.class, () -> userEntityService.update(id, userEntity));
+	}
+
+	@ParameterizedTest
+	@Tag("update_entry")
+	@NullAndEmptySource
+	@ValueSource(strings = {"1", "12", "123", "1234", "12345"})
+	@DisplayName("_13_updatePasswordWithErrorValue")
+	void _13_updatePasswordWithErrorValue(String newValue) {
+		// GIVEN
+		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
+		UserEntity userEntity = getUserEntity(id);
+		// WHEN
+		userEntity.setPassword(newValue);
+		// THEN
+		assertThrows(IncorrectField.class, () -> userEntityService.update(id, userEntity));
+	}
+
+	@Test
+	@Tag("update_entry")
+	@DisplayName("_14_updateImgWithErrorValue")
+	void _14_updateImgWithErrorValue() {
+		Assertions.assertTrue(true);
+		// GIVEN
+		// WHEN
+		// THEN
+	}
+
+	@Test
+	@Tag("update_entry")
+	@DisplayName("_15_updateRoleWithErrorValue")
+	void _15_updateRoleWithErrorValue() {
+		Assertions.assertTrue(true);
+		// GIVEN
+		// WHEN
+		// THEN
 	}
 
 }

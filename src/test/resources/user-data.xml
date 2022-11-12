@@ -5,11 +5,8 @@
     <user_entity id="3" login="user2" name="User 2" password="123456"/>
     <user_entity id="4" login="guest" name="Guest" password="123456"/>
     <user_entity_roles user_entity_id="1" roles="ADMIN" />
-    <user_entity_roles user_entity_id="1" roles="EDITOR" />
     <user_entity_roles user_entity_id="2" roles="EDITOR" />
-    <user_entity_roles user_entity_id="2" roles="GUEST" />
     <user_entity_roles user_entity_id="3" roles="EDITOR" />
     <user_entity_roles user_entity_id="3" roles="GUEST" />
     <user_entity_roles user_entity_id="4" roles="GUEST" />
-    <user_entity_roles user_entity_id="4" roles="EDITOR" />
 </dataset>

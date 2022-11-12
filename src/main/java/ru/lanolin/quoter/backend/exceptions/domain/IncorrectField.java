@@ -15,7 +15,7 @@ public class IncorrectField extends RuntimeException {
 	}
 
 	public IncorrectField(Class<?> clazz, String field, String value, String message) {
-		super(String.format(format, clazz.getName(), field, value, message));
+		super(String.format(format, clazz.getCanonicalName(), field, value, message));
 	}
 
 }
