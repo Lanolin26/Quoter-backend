@@ -23,13 +23,13 @@ public class QuoteEntityService implements RestApi<QuoteEntity, Integer> {
 			new CheckArgs<>(e -> Objects.isNull(e.getText()) || e.getText().isEmpty() || e.getText().isBlank(),
 					"text", "empty", "Not available empty value"),
 			new CheckArgs<>(e -> Objects.isNull(e.getSource()) || Objects.isNull(e.getSource().getId()),
-					"source", "empty", ""),
+					"source", "empty", "Not available empty value"),
 			new CheckArgs<>(e -> Objects.isNull(e.getAuthor()) || Objects.isNull(e.getAuthor().getId()),
-					"author", "empty", ""),
+					"author", "empty", "Not available empty value"),
 			new CheckArgs<>(Predicate.not(this::existSource),
-					"source", "not_found", ""),
+					"source", "not_found", "Not found valid entity"),
 			new CheckArgs<>(Predicate.not(this::existAuthor),
-					"author", "not_found", "")
+					"author", "not_found", "Not found valid entity")
 	);
 
 	private final QuoteEntityRepository repo;

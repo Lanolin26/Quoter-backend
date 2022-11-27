@@ -12,6 +12,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
+import java.util.Optional;
 
 @Getter
 @Setter
@@ -66,7 +67,10 @@ public class QuoteEntity extends IdentificationClass<Integer, QuoteEntityDto>{
 	@Override
 	public QuoteEntityDto dto() {
 		return new QuoteEntityDto(
-				this.id, this.text, this.author.dto(), this.source.dto()
+				this.id,
+				this.text,
+				Optional.ofNullable(this.author).map(UserEntity::dto).orElse(null),
+				Optional.ofNullable(this.source).map(QuoteSource::dto).orElse(null)
 		);
 	}
 }

@@ -12,6 +12,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.Objects;
+import java.util.Optional;
 
 @Getter
 @Setter
@@ -59,6 +60,6 @@ public class QuoteSource extends IdentificationClass<Integer, QuoteSourceDto>{
 
 	@Override
 	public QuoteSourceDto dto() {
-		return new QuoteSourceDto(id, sourceName, type.dto());
+		return new QuoteSourceDto(id, sourceName, Optional.ofNullable(type).map(QuoteSourceType::dto).orElse(null));
 	}
 }

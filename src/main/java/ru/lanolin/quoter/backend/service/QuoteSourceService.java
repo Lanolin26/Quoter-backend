@@ -21,9 +21,9 @@ public class QuoteSourceService implements RestApi<QuoteSource, Integer> {
 			new CheckArgs<>(e -> Objects.isNull(e.getSourceName()) || e.getSourceName().isEmpty() || e.getSourceName().isBlank(),
 					"Source_Name", "empty", "Not available empty value"),
 			new CheckArgs<>(e -> Objects.isNull(e.getType()) || Objects.isNull(e.getType().getId()),
-					"type", "empty", ""),
+					"type", "empty", "Type is empty"),
 			new CheckArgs<>(Predicate.not(this::existType),
-					"type", "not_found", "")
+					"type", "not_found", "Valid type not found")
 	);
 
 	private final QuoteSourceRepository repo;

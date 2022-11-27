@@ -49,10 +49,10 @@ public class UserEntityService implements RestApi<UserEntity, Integer> {
 		inDbEntity.setPassword(entity.getPassword());
 		inDbEntity.setImg(entity.getImg());
 		inDbEntity.getRoles().clear();
-		inDbEntity.getRoles().addAll(inDbEntity.getRoles());
+		inDbEntity.getRoles().addAll(entity.getRoles());
 
-		if (entity.getRoles().size()==0) {
-			entity.getRoles().add(UserRoles.GUEST);
+		if (inDbEntity.getRoles().size()==0) {
+			inDbEntity.getRoles().add(UserRoles.GUEST);
 		}
 	}
 
