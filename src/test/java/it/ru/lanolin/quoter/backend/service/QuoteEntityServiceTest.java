@@ -3,12 +3,17 @@ package it.ru.lanolin.quoter.backend.service;
 import com.github.springtestdbunit.DbUnitTestExecutionListener;
 import com.github.springtestdbunit.annotation.DatabaseSetup;
 import com.github.springtestdbunit.annotation.DatabaseSetups;
+import it.ru.lanolin.quoter.faker.QuoteServiceFaker;
 import it.ru.lanolin.quoter.util.DbTestUtil;
 import it.ru.lanolin.quoter.util.DbUnitConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,6 +29,7 @@ import ru.lanolin.quoter.QuotersLibraryApplication;
 import ru.lanolin.quoter.backend.domain.QuoteEntity;
 import ru.lanolin.quoter.backend.domain.QuoteSource;
 import ru.lanolin.quoter.backend.domain.UserEntity;
+import ru.lanolin.quoter.backend.exceptions.domain.IncorrectField;
 import ru.lanolin.quoter.backend.service.QuoteEntityService;
 import ru.lanolin.quoter.backend.service.QuoteSourceService;
 import ru.lanolin.quoter.backend.service.UserEntityService;
@@ -65,6 +71,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class QuoteEntityServiceTest {
 
 	private static Random rnd;
+	private static QuoteServiceFaker faker;
 
 	@Autowired
 	private ApplicationContext applicationContext;
@@ -79,6 +86,7 @@ class QuoteEntityServiceTest {
 	@BeforeAll
 	static void beforeAll() {
 		rnd = new Random(53945739L);
+		faker = new QuoteServiceFaker(new Locale("ru"), rnd);
 	}
 
 	@BeforeEach
@@ -91,7 +99,25 @@ class QuoteEntityServiceTest {
 		);
 	}
 
-	// TODO: Сделать тесты, на поверку ввода параметров: несущ. элемента и т.д.
+	private QuoteEntity getQuoteEntity(int quote_id) {
+		// WHEN
+		Optional<QuoteEntity> quoteEntityOptional = quoteEntityService.getOne(quote_id);
+		// THEN
+		assumeTrue(quoteEntityOptional.isPresent());
+		return quoteEntityOptional.get();
+	}
+
+	private QuoteSource getQuoteSource(int source_id) {
+		Optional<QuoteSource> quoteSourceOptional = quoteSourceService.getOne(source_id);
+		assumeTrue(quoteSourceOptional.isPresent());
+		return quoteSourceOptional.get();
+	}
+
+	private UserEntity getUserEntity(int author_id) {
+		Optional<UserEntity> userEntityOptional = userEntityService.getOne(author_id);
+		assumeTrue(userEntityOptional.isPresent());
+		return userEntityOptional.get();
+	}
 
 	@Test
 	@Tag("exist_entries")
@@ -118,25 +144,24 @@ class QuoteEntityServiceTest {
 		// GIVEN
 		int source_id = rnd.nextInt(1, MAX_QUOTE_SOURCE_ENTITIES + 1);
 		int author_id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
-		String text = randomStringWithLength(100);
 
 		// WHEN
-		int oldSize = quoteEntityService.findAll().size();
-		UserEntity userEntity = new UserEntity(author_id);
-		QuoteSource quoteSource = new QuoteSource(source_id);
-		QuoteEntity qe = new QuoteEntity(text, userEntity, quoteSource);
-		QuoteEntity createdEntity = quoteEntityService.create(qe);
-		int newSize = quoteEntityService.findAll().size();
+		long oldSize = quoteEntityService.count();
+		QuoteEntity qe = faker.quote().quoteEntity(author_id, source_id);
+		QuoteEntity createdEntity = assertDoesNotThrow(() -> quoteEntityService.create(qe));
+		long newSize = quoteEntityService.count();
 
 		// THEN
-		assertEquals(1, Math.abs(oldSize - newSize));
-		assertNotNull(createdEntity.getId());
-		assertNotNull(createdEntity.getAuthor());
-		assertNotNull(createdEntity.getSource());
-		assertNotNull(createdEntity.getText());
-		assertEquals(text, createdEntity.getText());
-		assertEquals(author_id, createdEntity.getAuthor().getId());
-		assertEquals(source_id, createdEntity.getSource().getId());
+		assertAll(
+				() -> assertEquals(1, Math.abs(oldSize - newSize)),
+				() -> assertNotNull(createdEntity.getId()),
+				() -> assertNotNull(createdEntity.getAuthor()),
+				() -> assertNotNull(createdEntity.getSource()),
+				() -> assertNotNull(createdEntity.getText()),
+				() -> assertEquals(qe.getText(), createdEntity.getText()),
+				() -> assertEquals(author_id, createdEntity.getAuthor().getId()),
+				() -> assertEquals(source_id, createdEntity.getSource().getId())
+		);
 	}
 
 	@Test
@@ -146,31 +171,27 @@ class QuoteEntityServiceTest {
 		// GIVEN
 		int source_id = rnd.nextInt(1, MAX_QUOTE_SOURCE_ENTITIES + 1);
 		int author_id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
-		String text = randomStringWithLength(100);
+		String text = faker.quote().text();
+
+		QuoteSource quoteSource = getQuoteSource(source_id);
+		UserEntity userEntity = getUserEntity(author_id);
 
 		// WHEN
-		Optional<QuoteSource> quoteSourceOptional = quoteSourceService.getOne(source_id);
-		Optional<UserEntity> userEntityOptional = userEntityService.getOne(author_id);
-		// THEN
-		assumeTrue(quoteSourceOptional.isPresent());
-		assumeTrue(userEntityOptional.isPresent());
-
-		// WHEN
-		int oldSize = quoteEntityService.findAll().size();
-		UserEntity userEntity = userEntityOptional.get();
-		QuoteSource quoteSource = quoteSourceOptional.get();
+		long oldSize = quoteEntityService.count();
 		QuoteEntity qe = new QuoteEntity(text, userEntity, quoteSource);
-		QuoteEntity createdEntity = quoteEntityService.create(qe);
-		int newSize = quoteEntityService.findAll().size();
+		QuoteEntity createdEntity = assertDoesNotThrow(() -> quoteEntityService.create(qe));
+		long newSize = quoteEntityService.count();
 		// THEN
-		assertEquals(1, Math.abs(oldSize - newSize));
-		assertNotNull(createdEntity.getId());
-		assertNotNull(createdEntity.getAuthor());
-		assertNotNull(createdEntity.getSource());
-		assertNotNull(createdEntity.getText());
-		assertEquals(text, createdEntity.getText());
-		assertEquals(author_id, createdEntity.getAuthor().getId());
-		assertEquals(source_id, createdEntity.getSource().getId());
+		assertAll(
+				() -> assertEquals(1, Math.abs(oldSize - newSize)),
+				() -> assertNotNull(createdEntity.getId()),
+				() -> assertNotNull(createdEntity.getAuthor()),
+				() -> assertNotNull(createdEntity.getSource()),
+				() -> assertNotNull(createdEntity.getText()),
+				() -> assertEquals(text, createdEntity.getText()),
+				() -> assertEquals(author_id, createdEntity.getAuthor().getId()),
+				() -> assertEquals(source_id, createdEntity.getSource().getId())
+		);
 	}
 
 	@Test
@@ -180,28 +201,24 @@ class QuoteEntityServiceTest {
 		// GIVEN
 		int quote_id = rnd.nextInt(1, MAX_QUOTE_ENTITIES + 1);
 		int source_id = rnd.nextInt(1, MAX_QUOTE_SOURCE_ENTITIES + 1);
-		int oldSize = quoteEntityService.findAll().size();
+		long oldSize = quoteEntityService.count();
 
-		// WHEN
-		Optional<QuoteEntity> quoteEntityOptional = quoteEntityService.getOne(quote_id);
-		// THEN
-		assumeTrue(quoteEntityOptional.isPresent());
-
-		// WHEN
+		QuoteEntity quoteEntity = getQuoteEntity(quote_id);
 		QuoteSource qs = new QuoteSource(source_id);
-		QuoteEntity quoteEntity = quoteEntityOptional.get();
 		quoteEntity.setSource(qs);
-		QuoteEntity updatedEntity = quoteEntityService.update(quote_id, quoteEntity);
+		QuoteEntity updatedEntity = assertDoesNotThrow(() -> quoteEntityService.update(quote_id, quoteEntity));
 		// THEN
-		assertNotNull(updatedEntity.getId());
-		assertNotNull(updatedEntity.getAuthor());
-		assertNotNull(updatedEntity.getSource());
-		assertNotNull(updatedEntity.getText());
-		assertEquals(quote_id, updatedEntity.getId());
-		assertEquals(source_id, updatedEntity.getSource().getId());
+		assertAll(
+				() -> assertNotNull(updatedEntity.getId()),
+				() -> assertNotNull(updatedEntity.getAuthor()),
+				() -> assertNotNull(updatedEntity.getSource()),
+				() -> assertNotNull(updatedEntity.getText()),
+				() -> assertEquals(quote_id, updatedEntity.getId()),
+				() -> assertEquals(source_id, updatedEntity.getSource().getId())
+		);
 
 		// WHEN
-		int newSize = quoteEntityService.findAll().size();
+		long newSize = quoteEntityService.count();
 		// THEN
 		assertEquals(0, Math.abs(oldSize - newSize));
 
@@ -214,34 +231,25 @@ class QuoteEntityServiceTest {
 		// GIVEN
 		int quote_id = rnd.nextInt(1, MAX_QUOTE_ENTITIES + 1);
 		int source_id = rnd.nextInt(1, MAX_QUOTE_SOURCE_ENTITIES + 1);
-		int oldSize = quoteEntityService.findAll().size();
+		long oldSize = quoteEntityService.count();
 
 		// WHEN
-		Optional<QuoteEntity> quoteEntityOptional = quoteEntityService.getOne(quote_id);
-		// THEN
-		assumeTrue(quoteEntityOptional.isPresent());
-
-		// WHEN
-		Optional<QuoteSource> quoteSourceOptional = quoteSourceService.getOne(source_id);
-		// THEN
-		assumeTrue(quoteSourceOptional.isPresent());
-
-		// WHEN
-		QuoteSource qs = quoteSourceOptional.get();
-		QuoteEntity quoteEntity = quoteEntityOptional.get();
+		QuoteSource qs = getQuoteSource(source_id);
+		QuoteEntity quoteEntity = getQuoteEntity(quote_id);
 		quoteEntity.setSource(qs);
-		QuoteEntity updatedEntity = quoteEntityService.update(quote_id, quoteEntity);
+		QuoteEntity updatedEntity = assertDoesNotThrow(() -> quoteEntityService.update(quote_id, quoteEntity));
 		// THEN
-		assertNotNull(updatedEntity.getId());
-		assertNotNull(updatedEntity.getAuthor());
-		assertNotNull(updatedEntity.getSource());
-		assertNotNull(updatedEntity.getText());
-		assertEquals(quote_id, updatedEntity.getId());
-		assertEquals(source_id, updatedEntity.getSource().getId());
-
+		assertAll(
+				() -> assertNotNull(updatedEntity.getId()),
+				() -> assertNotNull(updatedEntity.getAuthor()),
+				() -> assertNotNull(updatedEntity.getSource()),
+				() -> assertNotNull(updatedEntity.getText()),
+				() -> assertEquals(quote_id, updatedEntity.getId()),
+				() -> assertEquals(source_id, updatedEntity.getSource().getId())
+		);
 
 		// WHEN
-		int newSize = quoteEntityService.findAll().size();
+		long newSize = quoteEntityService.count();
 		// THEN
 		assertEquals(0, Math.abs(oldSize - newSize));
 	}
@@ -252,29 +260,25 @@ class QuoteEntityServiceTest {
 	void _06_changeTextField() {
 		// GIVEN
 		int quote_id = rnd.nextInt(1, MAX_QUOTE_ENTITIES + 1);
-		String text = randomStringWithLength(100);
-		int oldSize = quoteEntityService.findAll().size();
+		String text = faker.quote().text();
+		long oldSize = quoteEntityService.count();
 
 		// WHEN
-		Optional<QuoteEntity> quoteEntityOptional = quoteEntityService.getOne(quote_id);
-		// THEN
-		assumeTrue(quoteEntityOptional.isPresent());
-
-		// WHEN
-		QuoteEntity quoteEntity = quoteEntityOptional.get();
+		QuoteEntity quoteEntity = getQuoteEntity(quote_id);
 		quoteEntity.setText(text);
-		QuoteEntity updatedEntity = quoteEntityService.update(quote_id, quoteEntity);
+		QuoteEntity updatedEntity = assertDoesNotThrow(() -> quoteEntityService.update(quote_id, quoteEntity));
 		// THEN
-		assertNotNull(updatedEntity);
-		assertNotNull(updatedEntity.getId());
-		assertNotNull(updatedEntity.getAuthor());
-		assertNotNull(updatedEntity.getSource());
-		assertNotNull(updatedEntity.getText());
-		assertEquals(quote_id, updatedEntity.getId());
-		assertEquals(text, updatedEntity.getText());
-
+		assertAll(
+				() -> assertNotNull(updatedEntity),
+				() -> assertNotNull(updatedEntity.getId()),
+				() -> assertNotNull(updatedEntity.getAuthor()),
+				() -> assertNotNull(updatedEntity.getSource()),
+				() -> assertNotNull(updatedEntity.getText()),
+				() -> assertEquals(quote_id, updatedEntity.getId()),
+				() -> assertEquals(text, updatedEntity.getText())
+		);
 		// WHEN
-		int newSize = quoteEntityService.findAll().size();
+		long newSize = quoteEntityService.count();
 		// THEN
 		assertEquals(0, Math.abs(oldSize - newSize));
 	}
@@ -286,28 +290,24 @@ class QuoteEntityServiceTest {
 		// GIVEN
 		int quote_id = rnd.nextInt(1, MAX_QUOTE_ENTITIES + 1);
 		int author_id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
-		int oldSize = quoteEntityService.findAll().size();
-
-		// WHEN
-		Optional<QuoteEntity> quoteEntityOptional = quoteEntityService.getOne(quote_id);
-		// THEN
-		assumeTrue(quoteEntityOptional.isPresent());
+		long oldSize = quoteEntityService.count();
 
 		// WHEN
 		UserEntity ue = new UserEntity(author_id);
-		QuoteEntity quoteEntity = quoteEntityOptional.get();
+		QuoteEntity quoteEntity = getQuoteEntity(quote_id);
 		quoteEntity.setAuthor(ue);
-		QuoteEntity updatedEntity = quoteEntityService.update(quote_id, quoteEntity);
+		QuoteEntity updatedEntity = assertDoesNotThrow(() -> quoteEntityService.update(quote_id, quoteEntity));
 		// THEN
-		assertNotNull(updatedEntity.getId());
-		assertNotNull(updatedEntity.getAuthor());
-		assertNotNull(updatedEntity.getSource());
-		assertNotNull(updatedEntity.getText());
-		assertEquals(quote_id, updatedEntity.getId());
-		assertEquals(author_id, updatedEntity.getAuthor().getId());
-
+		assertAll(
+				() -> assertNotNull(updatedEntity.getId()),
+				() -> assertNotNull(updatedEntity.getAuthor()),
+				() -> assertNotNull(updatedEntity.getSource()),
+				() -> assertNotNull(updatedEntity.getText()),
+				() -> assertEquals(quote_id, updatedEntity.getId()),
+				() -> assertEquals(author_id, updatedEntity.getAuthor().getId())
+		);
 		// WHEN
-		int newSize = quoteEntityService.findAll().size();
+		long newSize = quoteEntityService.count();
 		// THEN
 		assertEquals(0, Math.abs(oldSize - newSize));
 	}
@@ -319,23 +319,13 @@ class QuoteEntityServiceTest {
 		// GIVEN
 		int quote_id = rnd.nextInt(1, MAX_QUOTE_ENTITIES + 1);
 		int author_id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
-		int oldSize = quoteEntityService.findAll().size();
+		long oldSize = quoteEntityService.count();
 
 		// WHEN
-		Optional<QuoteEntity> quoteEntityOptional = quoteEntityService.getOne(quote_id);
-		// THEN
-		assumeTrue(quoteEntityOptional.isPresent());
-
-		// WHEN
-		Optional<UserEntity> userEntityOptional = userEntityService.getOne(author_id);
-		// THEN
-		assumeTrue(userEntityOptional.isPresent());
-
-		// WHEN
-		UserEntity ue = userEntityOptional.get();
-		QuoteEntity quoteEntity = quoteEntityOptional.get();
+		UserEntity ue = getUserEntity(author_id);
+		QuoteEntity quoteEntity = getQuoteEntity(quote_id);
 		quoteEntity.setAuthor(ue);
-		QuoteEntity updatedEntity = quoteEntityService.update(quote_id, quoteEntity);
+		QuoteEntity updatedEntity = assertDoesNotThrow(() -> quoteEntityService.update(quote_id, quoteEntity));
 		// THEN
 		assertNotNull(updatedEntity.getId());
 		assertNotNull(updatedEntity.getAuthor());
@@ -345,7 +335,7 @@ class QuoteEntityServiceTest {
 		assertEquals(author_id, updatedEntity.getAuthor().getId());
 
 		// WHEN
-		int newSize = quoteEntityService.findAll().size();
+		long newSize = quoteEntityService.count();
 		// THEN
 		assertEquals(0, Math.abs(oldSize - newSize));
 	}
@@ -358,9 +348,9 @@ class QuoteEntityServiceTest {
 		int id = rnd.nextInt(1, MAX_QUOTE_ENTITIES + 1);
 		assumeTrue(quoteEntityService.getOne(id).isPresent());
 		// WHEN
-		int oldSize = quoteEntityService.findAll().size();
-		quoteEntityService.deleteById(id);
-		int newSize = quoteEntityService.findAll().size();
+		long oldSize = quoteEntityService.count();
+		assertDoesNotThrow(() -> quoteEntityService.deleteById(id));
+		long newSize = quoteEntityService.count();
 		// THEN
 		assertEquals(1, Math.abs(oldSize - newSize));
 		assertFalse(quoteEntityService.getOne(id).isPresent());
@@ -375,12 +365,134 @@ class QuoteEntityServiceTest {
 		assumeTrue(quoteEntityService.getOne(id).isPresent());
 		// WHEN
 		QuoteEntity qe = new QuoteEntity(id);
-		int oldSize = quoteEntityService.findAll().size();
-		quoteEntityService.delete(qe);
-		int newSize = quoteEntityService.findAll().size();
+		long oldSize = quoteEntityService.count();
+		assertDoesNotThrow(() -> quoteEntityService.delete(qe));
+		long newSize = quoteEntityService.count();
 		// THEN
 		assertEquals(1, Math.abs(oldSize - newSize));
 		assertFalse(quoteEntityService.getOne(id).isPresent());
 	}
 
+	@ParameterizedTest
+	@NullAndEmptySource
+	@DisplayName("_11_createEntityWithIncorrectText")
+	void _11_createEntityWithIncorrectText(String text) {
+		// GIVEN
+		int source_id = rnd.nextInt(1, MAX_QUOTE_SOURCE_ENTITIES + 1);
+		int author_id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
+		// WHEN
+		long oldSize = quoteEntityService.count();
+		UserEntity userEntity = new UserEntity(author_id);
+		QuoteSource quoteSource = new QuoteSource(source_id);
+		QuoteEntity qe = new QuoteEntity(text, userEntity, quoteSource);
+		assertThrows(IncorrectField.class, () -> quoteEntityService.create(qe));
+		long newSize = quoteEntityService.count();
+
+		// THEN
+		assertEquals(oldSize, newSize);
+	}
+
+	@ParameterizedTest
+	@NullSource
+	@ValueSource(ints = { -1, 0, MAX_QUOTE_SOURCE_ENTITIES + 1, -1 * MAX_QUOTE_SOURCE_ENTITIES })
+	@DisplayName("_12_createEntityWithIncorrectSource")
+	void _12_createEntityWithIncorrectSource(Integer source_id) {
+		// GIVEN
+		int author_id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
+		String text = faker.quote().text();
+		// WHEN
+		long oldSize = quoteEntityService.count();
+		UserEntity userEntity = new UserEntity(author_id);
+		QuoteSource quoteSource = new QuoteSource(source_id);
+		QuoteEntity qe = new QuoteEntity(text, userEntity, quoteSource);
+		assertThrows(IncorrectField.class, () -> quoteEntityService.create(qe));
+		long newSize = quoteEntityService.count();
+
+		// THEN
+		assertEquals(oldSize, newSize);
+	}
+
+	@ParameterizedTest
+	@NullSource
+	@ValueSource(ints = { -1, 0, MAX_USER_ENTITIES + 1, -1 * MAX_USER_ENTITIES })
+	@DisplayName("_13_createEntityWithIncorrectAuthor")
+	void _13_createEntityWithIncorrectAuthor(Integer author_id) {
+		// GIVEN
+		int source_id = rnd.nextInt(1, MAX_QUOTE_SOURCE_ENTITIES + 1);
+		String text = faker.quote().text();
+		// WHEN
+		long oldSize = quoteEntityService.count();
+		UserEntity userEntity = new UserEntity(author_id);
+		QuoteSource quoteSource = new QuoteSource(source_id);
+		QuoteEntity qe = new QuoteEntity(text, userEntity, quoteSource);
+		assertThrows(IncorrectField.class, () -> quoteEntityService.create(qe));
+		long newSize = quoteEntityService.count();
+
+		// THEN
+		assertEquals(oldSize, newSize);
+	}
+
+	@ParameterizedTest
+	@NullAndEmptySource
+	@DisplayName("_14_updateEntityWithIncorrectText")
+	void _14_updateEntityWithIncorrectText(String text) {
+		// GIVEN
+		int quote_id = rnd.nextInt(1, MAX_QUOTE_ENTITIES + 1);
+		long oldSize = quoteEntityService.count();
+
+		// WHEN
+		QuoteEntity quoteEntity = getQuoteEntity(quote_id);
+		quoteEntity.setText(text);
+		// THEN
+		assertThrows(IncorrectField.class, () -> quoteEntityService.update(quote_id, quoteEntity));
+
+		// WHEN
+		long newSize = quoteEntityService.count();
+		// THEN
+		assertEquals(oldSize, newSize);
+	}
+
+	@ParameterizedTest
+	@NullSource
+	@ValueSource(ints = { -1, 0, MAX_QUOTE_SOURCE_ENTITIES + 1, -1 * MAX_QUOTE_SOURCE_ENTITIES })
+	@DisplayName("_15_updateEntityWithIncorrectSource")
+	void _15_updateEntityWithIncorrectSource(Integer source_id) {
+		// GIVEN
+		int quote_id = rnd.nextInt(1, MAX_QUOTE_ENTITIES + 1);
+		long oldSize = quoteEntityService.count();
+
+		// WHEN
+		QuoteSource qs = new QuoteSource(source_id);
+		QuoteEntity quoteEntity = getQuoteEntity(quote_id);
+		quoteEntity.setSource(qs);
+		// THEN
+		assertThrows(IncorrectField.class, () -> quoteEntityService.update(quote_id, quoteEntity));
+
+		// WHEN
+		long newSize = quoteEntityService.count();
+		// THEN
+		assertEquals(oldSize, newSize);
+	}
+
+	@ParameterizedTest
+	@NullSource
+	@ValueSource(ints = { -1, 0, MAX_USER_ENTITIES + 1, -1 * MAX_USER_ENTITIES })
+	@DisplayName("_16_updateEntityWithIncorrectAuthor")
+	void _16_updateEntityWithIncorrectAuthor(Integer author_id) {
+		// GIVEN
+		int quote_id = rnd.nextInt(1, MAX_QUOTE_ENTITIES + 1);
+		long oldSize = quoteEntityService.count();
+
+		// WHEN
+		UserEntity ue = new UserEntity(author_id);
+		QuoteEntity quoteEntity = getQuoteEntity(quote_id);
+		quoteEntity.setAuthor(ue);
+		// THEN
+		assertThrows(IncorrectField.class, () -> quoteEntityService.update(quote_id, quoteEntity));
+
+		// WHEN
+		long newSize = quoteEntityService.count();
+		// THEN
+		assertEquals(oldSize, newSize);
+	}
 }

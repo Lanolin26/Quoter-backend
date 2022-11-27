@@ -2,9 +2,9 @@ package it.ru.lanolin.quoter.backend.service;
 
 import com.github.springtestdbunit.DbUnitTestExecutionListener;
 import com.github.springtestdbunit.annotation.DatabaseSetup;
+import it.ru.lanolin.quoter.faker.QuoteServiceFaker;
 import it.ru.lanolin.quoter.util.DbTestUtil;
 import it.ru.lanolin.quoter.util.DbUnitConfiguration;
-import it.ru.lanolin.quoter.util.Utils;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
@@ -36,7 +36,6 @@ import static it.ru.lanolin.quoter.util.Utils.MAX_USER_ENTITIES;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
-import static ru.lanolin.quoter.backend.domain.UserRoles.GUEST;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = { QuotersLibraryApplication.class, DbUnitConfiguration.class })
@@ -60,10 +59,12 @@ import static ru.lanolin.quoter.backend.domain.UserRoles.GUEST;
 class UserEntityServiceTest {
 
 	private static Random rnd;
+	private static QuoteServiceFaker faker;
 
 	@BeforeAll
 	static void beforeAll() {
 		rnd = new Random(8475634875L);
+		faker = new QuoteServiceFaker(new Locale("ru"), rnd);
 	}
 
 	@Autowired
@@ -103,8 +104,9 @@ class UserEntityServiceTest {
 		//THEN
 		assumeFalse(0 == all.size());
 
-		assertEquals(4, all.size());
-		assertAll(IntStream.range(0, MAX_USER_ENTITIES).boxed()
+		assertEquals(MAX_USER_ENTITIES, all.size());
+		assertAll(IntStream.range(0, MAX_USER_ENTITIES)
+				.boxed()
 				.map(id -> (Executable) () -> assertEquals(id + 1, all.get(id).getId(), "Checked id=" + id))
 				.toList()
 		);
@@ -116,11 +118,7 @@ class UserEntityServiceTest {
 	@DisplayName("Добавление нового элемента в БД")
 	void _02_addNewValue() {
 		// GIVEN
-		String name = Utils.randomStringWithLength(10);
-		String login = Utils.randomStringWithLength(15);
-		String password = Utils.randomStringWithLength(22);
-		Set<UserRoles> roles = Set.of(GUEST);
-		UserEntity newValue = new UserEntity(null, login, name, password, null, roles);
+		UserEntity newValue = faker.userEntity().userEntity();
 		// WHEN
 		int size = userEntityService.findAll().size();
 		UserEntity savedValue = Assertions.assertDoesNotThrow(() -> userEntityService.create(newValue));
@@ -130,10 +128,10 @@ class UserEntityServiceTest {
 		assertNotNull(savedValue.getId());
 		assertAll(
 				() -> assertEquals(newSize, savedValue.getId()),
-				() -> assertEquals(name, savedValue.getName()),
-				() -> assertEquals(login, savedValue.getLogin()),
-				() -> assertEquals(password, savedValue.getPassword()),
-				() -> assertEquals(roles, savedValue.getRoles())
+				() -> assertEquals(newValue.getName(), savedValue.getName()),
+				() -> assertEquals(newValue.getLogin(), savedValue.getLogin()),
+				() -> assertEquals(newValue.getPassword(), savedValue.getPassword()),
+				() -> assertEquals(newValue.getRoles(), savedValue.getRoles())
 		);
 	}
 
@@ -143,15 +141,15 @@ class UserEntityServiceTest {
 	void _03_updateNameField() {
 		// GIVEN
 		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
-		String appendValue = Utils.randomStringWithLength(5);
+		String newName = faker.userEntity().name();
 		// WHEN
 		UserEntity userEntity = getUserEntity(id);
-		userEntity.setName(userEntity.getName() + appendValue);
+		userEntity.setName(newName);
 		UserEntity update = Assertions.assertDoesNotThrow(() -> userEntityService.update(id, userEntity));
 		// THEN
 		assertAll(
 				() -> assertEquals(id, update.getId()),
-				() -> assertTrue(update.getName().endsWith(appendValue)),
+				() -> assertEquals(update.getName(), newName),
 				() -> assertEquals(userEntity.getName(), update.getName()),
 				() -> assertEquals(userEntity.getLogin(), update.getLogin()),
 				() -> assertEquals(userEntity.getPassword(), update.getPassword()),
@@ -166,16 +164,16 @@ class UserEntityServiceTest {
 	void _04_updateLoginField() {
 		// GIVEN
 		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
-		String appendValue = Utils.randomStringWithLength(5);
+		String newLogin = faker.userEntity().login();
 
 		// WHEN
 		UserEntity userEntity = getUserEntity(id);
-		userEntity.setLogin(userEntity.getLogin() + appendValue);
+		userEntity.setLogin(newLogin);
 		UserEntity update = Assertions.assertDoesNotThrow(() -> userEntityService.update(id, userEntity));
 		// THEN
 		assertAll(
 				() -> assertEquals(id, update.getId()),
-				() -> assertTrue(update.getLogin().endsWith(appendValue)),
+				() -> assertEquals(update.getLogin(), newLogin),
 				() -> assertEquals(userEntity.getName(), update.getName()),
 				() -> assertEquals(userEntity.getLogin(), update.getLogin()),
 				() -> assertEquals(userEntity.getPassword(), update.getPassword()),
@@ -190,16 +188,16 @@ class UserEntityServiceTest {
 	void _05_updatePasswordField() {
 		// GIVEN
 		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
-		String appendValue = Utils.randomStringWithLength(5);
+		String newPassword = faker.userEntity().password();
 
 		// WHEN
 		UserEntity userEntity = getUserEntity(id);
-		userEntity.setPassword(userEntity.getPassword() + appendValue);
+		userEntity.setPassword(newPassword);
 		UserEntity update = Assertions.assertDoesNotThrow(() -> userEntityService.update(id, userEntity));
 		// THEN
 		assertAll(
 				() -> assertEquals(id, update.getId()),
-				() -> assertTrue(update.getPassword().endsWith(appendValue)),
+				() -> assertTrue(update.getPassword().endsWith(newPassword)),
 				() -> assertEquals(userEntity.getName(), update.getName()),
 				() -> assertEquals(userEntity.getLogin(), update.getLogin()),
 				() -> assertEquals(userEntity.getPassword(), update.getPassword()),
@@ -210,11 +208,12 @@ class UserEntityServiceTest {
 
 	@Test
 	@Tag("update_entry")
+	@Disabled("Not released img")
 	@DisplayName("Обновление поля img")
 	void _06_updateImgField() {
 		// GIVEN
 		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
-		String value = Utils.randomStringWithLength(5);
+		String value = faker.userEntity().img();
 		// WHEN
 		UserEntity userEntity = getUserEntity(id);
 		userEntity.setImg(value);
@@ -239,10 +238,10 @@ class UserEntityServiceTest {
 	void _07_updateRoleField() {
 		// GIVEN
 		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
-		UserRoles roleAdd = UserRoles.ADMIN;
+		Set<UserRoles> newRoles = faker.userEntity().roles();
 		// WHEN
 		UserEntity userEntity = getUserEntity(id);
-		userEntity.getRoles().add(roleAdd);
+		userEntity.setRoles(newRoles);
 		UserEntity update = Assertions.assertDoesNotThrow(() -> userEntityService.update(id, userEntity));
 
 		assertAll(
@@ -263,10 +262,34 @@ class UserEntityServiceTest {
 	void _08_updateRoleField_2() {
 		// GIVEN
 		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
-		UserRoles roleDel = UserRoles.EDITOR;
 		// WHEN
 		UserEntity userEntity = getUserEntity(id);
+		UserRoles roleDel = faker.options().nextElement(new ArrayList<>(userEntity.getRoles()));
 		userEntity.getRoles().remove(roleDel);
+		UserEntity update = Assertions.assertDoesNotThrow(() -> userEntityService.update(id, userEntity));
+
+		assertAll(
+				() -> assertEquals(id, update.getId()),
+				() -> assertNotNull(update.getRoles()),
+				() -> assertEquals(userEntity.getRoles().size(), update.getRoles().size()),
+				() -> assertEquals(userEntity.getName(), update.getName()),
+				() -> assertEquals(userEntity.getLogin(), update.getLogin()),
+				() -> assertEquals(userEntity.getPassword(), update.getPassword()),
+				() -> assertEquals(userEntity.getImg(), update.getImg()),
+				() -> assertEquals(userEntity.getRoles(), update.getRoles())
+		);
+	}
+
+	@Test
+	@Tag("update_entry")
+	@DisplayName("Обновление поля roles")
+	void _08_updateRoleField_3() {
+		// GIVEN
+		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
+		// WHEN
+		UserEntity userEntity = getUserEntity(id);
+		UserRoles roleAdd = faker.options().nextElement(new ArrayList<>(userEntity.getRoles()));
+		userEntity.getRoles().add(roleAdd);
 		UserEntity update = Assertions.assertDoesNotThrow(() -> userEntityService.update(id, userEntity));
 
 		assertAll(
@@ -321,13 +344,10 @@ class UserEntityServiceTest {
 		assertFalse(deletedEntity.isPresent());
 	}
 
-	// TODO: Сделать тесты, на поверку ввода параметров: несущ. элемента и т.д.
-
-
 	@ParameterizedTest
 	@Tag("update_entry")
 	@NullAndEmptySource
-	@DisplayName("_12_updateNameWithErrorValue")
+	@DisplayName("Обновление поля Login с некорректным значением")
 	void _11_updateLoginWithErrorValue(String newValue) {
 		// GIVEN
 		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
@@ -341,7 +361,7 @@ class UserEntityServiceTest {
 	@ParameterizedTest
 	@Tag("update_entry")
 	@NullAndEmptySource
-	@DisplayName("_12_updateNameWithErrorValue")
+	@DisplayName("Обновление поля Name с некорректным значением")
 	void _12_updateNameWithErrorValue(String newValue) {
 		// GIVEN
 		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
@@ -355,8 +375,8 @@ class UserEntityServiceTest {
 	@ParameterizedTest
 	@Tag("update_entry")
 	@NullAndEmptySource
-	@ValueSource(strings = {"1", "12", "123", "1234", "12345"})
-	@DisplayName("_13_updatePasswordWithErrorValue")
+	@ValueSource(strings = { "1", "12", "123", "1234", "12345" })
+	@DisplayName("Обновление поля Password с некорректным значением")
 	void _13_updatePasswordWithErrorValue(String newValue) {
 		// GIVEN
 		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
@@ -369,9 +389,10 @@ class UserEntityServiceTest {
 
 	@Test
 	@Tag("update_entry")
-	@DisplayName("_14_updateImgWithErrorValue")
+	@Disabled("Not released img")
+	@DisplayName("Обновление поля Img с некорректным значением")
 	void _14_updateImgWithErrorValue() {
-		Assertions.assertTrue(true);
+		fail();
 		// GIVEN
 		// WHEN
 		// THEN
@@ -379,12 +400,62 @@ class UserEntityServiceTest {
 
 	@Test
 	@Tag("update_entry")
-	@DisplayName("_15_updateRoleWithErrorValue")
+	@Disabled("Not find role incorrect value")
+	@DisplayName("Обновление поля Role с некорректным значением")
 	void _15_updateRoleWithErrorValue() {
-		Assertions.assertTrue(true);
+		fail();
 		// GIVEN
 		// WHEN
 		// THEN
+	}
+
+	@ParameterizedTest
+	@Tag("add_entry")
+	@NullAndEmptySource
+	@DisplayName("Добавление объекта с некорректным значением Name")
+	void _16_addNewValueWithErrorName(String name) {
+		// GIVEN
+		UserEntity newValue = faker.userEntity().userEntity();
+		newValue.setName(name);
+		// WHEN
+		int oldSize = userEntityService.findAll().size();
+		Assertions.assertThrows(IncorrectField.class, () -> userEntityService.create(newValue));
+		int newSize = userEntityService.findAll().size();
+		// THEN
+		assertEquals(oldSize, newSize);
+	}
+
+	@ParameterizedTest
+	@Tag("add_entry")
+	@NullAndEmptySource
+	@DisplayName("Добавление объекта с некорректным значением Login")
+	void _17_addNewValueWithErrorLogin(String login) {
+		// GIVEN
+		UserEntity newValue = faker.userEntity().userEntity();
+		newValue.setLogin(login);
+		// WHEN
+		int oldSize = userEntityService.findAll().size();
+		Assertions.assertThrows(IncorrectField.class, () -> userEntityService.create(newValue));
+		int newSize = userEntityService.findAll().size();
+		// THEN
+		assertEquals(oldSize, newSize);
+	}
+
+	@ParameterizedTest
+	@Tag("add_entry")
+	@NullAndEmptySource
+	@ValueSource(strings = { "1", "12", "123", "1234", "12345" })
+	@DisplayName("Добавление объекта с некорректным значением Password")
+	void _17_addNewValueWithErrorPassword(String password) {
+		// GIVEN
+		UserEntity newValue = faker.userEntity().userEntity();
+		newValue.setPassword(password);
+		// WHEN
+		int oldSize = userEntityService.findAll().size();
+		Assertions.assertThrows(IncorrectField.class, () -> userEntityService.create(newValue));
+		int newSize = userEntityService.findAll().size();
+		// THEN
+		assertEquals(oldSize, newSize);
 	}
 
 }

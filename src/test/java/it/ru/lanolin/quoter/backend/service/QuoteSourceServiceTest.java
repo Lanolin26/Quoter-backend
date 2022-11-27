@@ -3,12 +3,17 @@ package it.ru.lanolin.quoter.backend.service;
 import com.github.springtestdbunit.DbUnitTestExecutionListener;
 import com.github.springtestdbunit.annotation.DatabaseSetup;
 import com.github.springtestdbunit.annotation.DatabaseSetups;
+import it.ru.lanolin.quoter.faker.QuoteServiceFaker;
 import it.ru.lanolin.quoter.util.DbTestUtil;
 import it.ru.lanolin.quoter.util.DbUnitConfiguration;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.lanolin.quoter.QuotersLibraryApplication;
 import ru.lanolin.quoter.backend.domain.QuoteSource;
 import ru.lanolin.quoter.backend.domain.QuoteSourceType;
+import ru.lanolin.quoter.backend.exceptions.domain.IncorrectField;
 import ru.lanolin.quoter.backend.service.QuoteSourceService;
 import ru.lanolin.quoter.backend.service.QuoteSourceTypeService;
 
@@ -30,7 +36,8 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.IntStream;
 
-import static it.ru.lanolin.quoter.util.Utils.*;
+import static it.ru.lanolin.quoter.util.Utils.MAX_QUOTE_SOURCE_ENTITIES;
+import static it.ru.lanolin.quoter.util.Utils.MAX_QUOTE_SOURCE_TYPE_ENTITIES;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
@@ -61,6 +68,8 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 class QuoteSourceServiceTest {
 
 	private static Random rnd;
+	private static QuoteServiceFaker faker;
+
 
 	@Autowired
 	private ApplicationContext applicationContext;
@@ -73,6 +82,7 @@ class QuoteSourceServiceTest {
 	@BeforeAll
 	static void beforeAll() {
 		rnd = new Random(242423983094L);
+		faker = new QuoteServiceFaker(new Locale("ru"), rnd);
 	}
 
 	@BeforeEach
@@ -83,7 +93,13 @@ class QuoteSourceServiceTest {
 		);
 	}
 
-	// TODO: Сделать тесты, на поверку ввода параметров: несущ. элемента и т.д.
+	private QuoteSource getQuoteSource(int id_source) {
+		// WHEN
+		Optional<QuoteSource> sourceOptional = quoteSourceService.getOne(id_source);
+		// THEN
+		Assumptions.assumeTrue(sourceOptional.isPresent());
+		return sourceOptional.get();
+	}
 
 	@Test
 	@Tag("exist_entries")
@@ -113,18 +129,17 @@ class QuoteSourceServiceTest {
 	void _02_addNewValue() {
 		// GIVEN
 		int type_id = rnd.nextInt(1, MAX_QUOTE_SOURCE_TYPE_ENTITIES + 1);
-		String type = randomStringWithLength(8);
-		QuoteSource quoteSource = new QuoteSource(type, new QuoteSourceType(type_id));
+		QuoteSource quoteSource = faker.quoteSource().quoteSource(type_id);
 
 		// WHEN
 		int oldSize = quoteSourceService.findAll().size();
-		QuoteSource createdEntity = quoteSourceService.create(quoteSource);
+		QuoteSource createdEntity = Assertions.assertDoesNotThrow(() -> quoteSourceService.create(quoteSource));
 		int newSize = quoteSourceService.findAll().size();
 
 		// THEN
 		assertEquals(1, Math.abs(oldSize - newSize));
 		assertNotNull(createdEntity.getId());
-		assertEquals(type, createdEntity.getSourceName());
+		assertEquals(quoteSource.getSourceName(), createdEntity.getSourceName());
 		assertNotNull(createdEntity.getType());
 		assertEquals(type_id, createdEntity.getType().getId());
 	}
@@ -135,15 +150,10 @@ class QuoteSourceServiceTest {
 	void _03_changeSourceNameField() {
 		// GIVEN
 		int id_source = rnd.nextInt(1, MAX_QUOTE_SOURCE_ENTITIES+1);
-		String newSourceName = randomStringWithLength(25);
+		String newSourceName = faker.quoteSource().sourceName();
 
-		// WHEN
-		Optional<QuoteSource> sourceOptional = quoteSourceService.getOne(id_source);
-		// THEN
-		Assumptions.assumeTrue(sourceOptional.isPresent());
-
-		// WHEN
-		QuoteSource quoteSource = sourceOptional.get();
+		//WHEN
+		QuoteSource quoteSource = getQuoteSource(id_source);
 		quoteSource.setSourceName(newSourceName);
 		QuoteSource update = quoteSourceService.update(id_source, quoteSource);
 		// THEN
@@ -153,11 +163,7 @@ class QuoteSourceServiceTest {
 		assertEquals(newSourceName, update.getSourceName());
 		assertEquals(quoteSource.getType().getId(), update.getType().getId());
 
-		// WHEN
-		Optional<QuoteSource> sourceOptional_1 = quoteSourceService.getOne(id_source);
-		// THEN
-		Assumptions.assumeTrue(sourceOptional_1.isPresent());
-		assertEquals(newSourceName, sourceOptional_1.get().getSourceName());
+		assertEquals(newSourceName, getQuoteSource(id_source).getSourceName());
 	}
 
 	@Test
@@ -169,12 +175,7 @@ class QuoteSourceServiceTest {
 		int id_source_type = rnd.nextInt(1, MAX_QUOTE_SOURCE_TYPE_ENTITIES+1);
 
 		// WHEN
-		Optional<QuoteSource> sourceOptional = quoteSourceService.getOne(id_source);
-		// THEN
-		Assumptions.assumeTrue(sourceOptional.isPresent());
-
-		// WHEN
-		QuoteSource quoteSource = sourceOptional.get();
+		QuoteSource quoteSource = getQuoteSource(id_source);
 		quoteSource.setType(new QuoteSourceType(id_source_type));
 		QuoteSource update = quoteSourceService.update(id_source, quoteSource);
 
@@ -194,17 +195,12 @@ class QuoteSourceServiceTest {
 		int id_source_type = rnd.nextInt(1, MAX_QUOTE_SOURCE_TYPE_ENTITIES+1);
 
 		// WHEN
-		Optional<QuoteSource> sourceOptional = quoteSourceService.getOne(id_source);
-		// THEN
-		Assumptions.assumeTrue(sourceOptional.isPresent());
-
-		// WHEN
 		Optional<QuoteSourceType> sourceTypeOptional = quoteSourceTypeService.getOne(id_source_type);
 		// THEN
 		Assumptions.assumeTrue(sourceTypeOptional.isPresent());
 
 		// WHEN
-		QuoteSource quoteSource = sourceOptional.get();
+		QuoteSource quoteSource = getQuoteSource(id_source);
 		QuoteSourceType newQuoteSourceType = sourceTypeOptional.get();
 		quoteSource.setType(newQuoteSourceType);
 		QuoteSource update = quoteSourceService.update(id_source, quoteSource);
@@ -250,4 +246,38 @@ class QuoteSourceServiceTest {
 		assertFalse(quoteSourceService.getOne(id).isPresent());
 	}
 
+	@ParameterizedTest
+	@NullAndEmptySource
+	@DisplayName("_08_createObjectWithError")
+	void _08_createObjectWithError(String type) {
+		// GIVEN
+		int type_id = rnd.nextInt(1, MAX_QUOTE_SOURCE_TYPE_ENTITIES + 1);
+		QuoteSource quoteSource = new QuoteSource(type, new QuoteSourceType(type_id));
+
+		// WHEN
+		int oldSize = quoteSourceService.findAll().size();
+		assertThrows(IncorrectField.class, () -> quoteSourceService.create(quoteSource));
+		int newSize = quoteSourceService.findAll().size();
+
+		// THEN
+		assertEquals(oldSize, newSize);
+	}
+
+	@ParameterizedTest
+	@NullSource
+	@ValueSource(ints = { MAX_QUOTE_SOURCE_ENTITIES+2, -1, 0, -1*MAX_QUOTE_SOURCE_ENTITIES })
+	@DisplayName("_09_createObjectWithError")
+	void _09_createObjectWithError(Integer type_id) {
+		// GIVEN
+		String sourceName = faker.quoteSource().sourceName();
+		QuoteSource quoteSource = new QuoteSource(sourceName, new QuoteSourceType(type_id));
+
+		// WHEN
+		int oldSize = quoteSourceService.findAll().size();
+		assertThrows(IncorrectField.class, () -> quoteSourceService.create(quoteSource));
+		int newSize = quoteSourceService.findAll().size();
+
+		// THEN
+		assertEquals(oldSize, newSize);
+	}
 }
