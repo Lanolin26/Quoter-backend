@@ -6,10 +6,12 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import ru.lanolin.quoter.backend.domain.IdentificationClass;
+import ru.lanolin.quoter.backend.domain.dto.ConverterDtoToEntity;
 import ru.lanolin.quoter.backend.exceptions.domain.CheckArgs;
 import ru.lanolin.quoter.backend.exceptions.domain.IncorrectField;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -21,23 +23,22 @@ import java.util.Optional;
  * @param <ID>
  * 		Id класс в {@link E} параметре
  */
-public interface RestApi<E extends IdentificationClass<ID, ?>, ID extends Number> {
+public interface RestApi<E extends IdentificationClass<ID, ? extends ConverterDtoToEntity<E>>, ID extends Number> {
 
 	default Page<E> findAll(Pageable page) {
-		return getRepo()
-				.findAll(page);
+		return getRepo().findAll(page).map(e -> e.dto().entity());
 	}
 
 	default List<E> findAll() {
-		return getRepo()
-				.findAll()
-				.stream()
-				.toList();
+		return getRepo().findAll().stream().map(e -> e.dto().entity()).toList();
+	}
+
+	default long count() {
+		return getRepo().count();
 	}
 
 	default Optional<E> getOne(ID id) {
-		return getRepo()
-				.findById(id);
+		return getRepo().findById(id).map(e -> e.dto().entity());
 	}
 
 	default boolean existById(ID id) {
@@ -45,7 +46,7 @@ public interface RestApi<E extends IdentificationClass<ID, ?>, ID extends Number
 	}
 
 	default boolean exist(E e) {
-		return existById(e.getId());
+		return Objects.nonNull(e) && Objects.nonNull(e.getId()) && existById(e.getId());
 	}
 
 	/**
@@ -58,10 +59,10 @@ public interface RestApi<E extends IdentificationClass<ID, ?>, ID extends Number
 	 *        {@link E} объект сохранения
 	 * @return сохраненный объект с выданным {@link IdentificationClass#id}.
 	 */
-	default E create(@NonNull E entity) {
+	default E create(@NonNull E entity) throws IncorrectField {
 		checkCorrect(entity);
 		entity.setId(null);
-		return getRepo().save(entity);
+		return getRepo().save(entity).dto().entity();
 	}
 
 	/**
@@ -77,7 +78,7 @@ public interface RestApi<E extends IdentificationClass<ID, ?>, ID extends Number
 	 *        {@link E}
 	 * @return обновленный элемента
 	 */
-	default E update(ID id, @NonNull E entity) {
+	default E update(ID id, @NonNull E entity) throws IncorrectField {
 		checkCorrect(entity);
 		Optional<E> inDb = getRepo().findById(id);
 		if (inDb.isEmpty()) {
@@ -85,7 +86,7 @@ public interface RestApi<E extends IdentificationClass<ID, ?>, ID extends Number
 		} else {
 			E inDbEntity = inDb.get();
 			copyProperties(entity, inDbEntity);
-			return getRepo().save(inDbEntity);
+			return getRepo().save(inDbEntity).dto().entity();
 		}
 	}
 
@@ -99,11 +100,11 @@ public interface RestApi<E extends IdentificationClass<ID, ?>, ID extends Number
 
 	@SuppressWarnings({ "unchecked" })
 	default void checkCorrect(E entity) throws IncorrectField {
-		checks().stream()
-				.filter(r -> r.func().test(entity))
-				.findAny()
-				.map(r -> r.createException((Class<E>) entity.getClass()))
-				.ifPresent(e -> { throw e; });
+		for (CheckArgs<E> eCheckArgs : checks()) {
+			if (eCheckArgs.func().test(entity)) {
+				throw eCheckArgs.createException((Class<E>) entity.getClass());
+			}
+		}
 	}
 
 	default void copyProperties(E source, E target) {
