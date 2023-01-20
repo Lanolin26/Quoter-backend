@@ -1,14 +1,14 @@
-package it.ru.lanolin.quoter.faker;
+package faker;
 
 import net.datafaker.AbstractProvider;
 import ru.lanolin.quoter.backend.domain.QuoteSource;
 import ru.lanolin.quoter.backend.domain.QuoteSourceType;
 
-public class QuoteSourceFaker extends AbstractProvider  {
+public class QuoteSourceFake extends AbstractProvider  {
 	
 	private final QuoteServiceFaker localFaker;
 	
-	protected QuoteSourceFaker(QuoteServiceFaker faker) {
+	protected QuoteSourceFake(QuoteServiceFaker faker) {
 		super(faker);
 		localFaker = faker;
 	}
@@ -29,4 +29,7 @@ public class QuoteSourceFaker extends AbstractProvider  {
 		return new QuoteSource(sourceName(), new QuoteSourceType(typeId));
 	}
 
+	public QuoteSource quoteSource(int id, int typeId) {
+		return new QuoteSource(id, sourceName(), new QuoteSourceType(typeId));
+	}
 }

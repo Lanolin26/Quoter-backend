@@ -1,11 +1,11 @@
-package it.ru.lanolin.quoter.faker;
+package faker;
 
 import net.datafaker.AbstractProvider;
 import ru.lanolin.quoter.backend.domain.QuoteSourceType;
 
-public class QuoteSourceTypeFaker extends AbstractProvider {
+public class QuoteSourceTypeFake extends AbstractProvider {
 
-	protected QuoteSourceTypeFaker(QuoteServiceFaker faker) {
+	protected QuoteSourceTypeFake(QuoteServiceFaker faker) {
 		super(faker);
 	}
 
@@ -15,6 +15,10 @@ public class QuoteSourceTypeFaker extends AbstractProvider {
 
 	public QuoteSourceType quoteSourceType() {
 		return new QuoteSourceType(type());
+	}
+
+	public QuoteSourceType quoteSourceType(Integer id) {
+		return new QuoteSourceType(id, type());
 	}
 
 }

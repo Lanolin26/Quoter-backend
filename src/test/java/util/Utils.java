@@ -1,4 +1,4 @@
-package it.ru.lanolin.quoter.util;
+package util;
 
 public final class Utils {
 

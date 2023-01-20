@@ -1,4 +1,4 @@
-package it.ru.lanolin.quoter.faker;
+package faker;
 
 import net.datafaker.AbstractProvider;
 import net.datafaker.Password;
@@ -7,13 +7,13 @@ import ru.lanolin.quoter.backend.domain.UserRoles;
 
 import java.util.Set;
 
-import static it.ru.lanolin.quoter.util.Utils.ALL_LETTERS;
+import static util.Utils.ALL_LETTERS;
 
-public class UserEntityFaker extends AbstractProvider {
+public class UserEntityFake extends AbstractProvider {
 
 	private final Password.PasswordRuleConfig passwordRuleConfig;
 
-	protected UserEntityFaker(QuoteServiceFaker faker) {
+	protected UserEntityFake(QuoteServiceFaker faker) {
 		super(faker);
 		passwordRuleConfig = Password.PasswordSymbolsBuilder.builder()
 				.withMaxLength(16)
@@ -43,6 +43,10 @@ public class UserEntityFaker extends AbstractProvider {
 
 	public UserEntity userEntity() {
 		return new UserEntity(login(), name(), password(), null, roles());
+	}
+
+	public UserEntity userEntity(Integer id) {
+		return new UserEntity(id, login(), name(), password(), null, roles());
 	}
 
 	public String img() {

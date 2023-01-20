@@ -1,4 +1,4 @@
-package it.ru.lanolin.quoter.faker;
+package faker;
 
 import net.datafaker.Faker;
 import net.datafaker.service.FakeValuesService;
@@ -33,20 +33,20 @@ public class QuoteServiceFaker extends Faker {
 		super(fakeValuesService, random);
 	}
 
-	public UserEntityFaker userEntity() {
-		return this.getProvider(UserEntityFaker.class, () -> new UserEntityFaker(this));
+	public UserEntityFake userEntity() {
+		return this.getProvider(UserEntityFake.class, () -> new UserEntityFake(this));
 	}
 
-	public QuoteSourceTypeFaker quoteSourceType() {
-		return this.getProvider(QuoteSourceTypeFaker.class, () -> new QuoteSourceTypeFaker(this));
+	public QuoteSourceTypeFake quoteSourceType() {
+		return this.getProvider(QuoteSourceTypeFake.class, () -> new QuoteSourceTypeFake(this));
 	}
 
-	public QuoteSourceFaker quoteSource() {
-		return this.getProvider(QuoteSourceFaker.class, () -> new QuoteSourceFaker(this));
+	public QuoteSourceFake quoteSource() {
+		return this.getProvider(QuoteSourceFake.class, () -> new QuoteSourceFake(this));
 	}
 
-	public QuoteFaker quote() {
-		return this.getProvider(QuoteFaker.class, () -> new QuoteFaker(this));
+	public QuoteFake quote() {
+		return this.getProvider(QuoteFake.class, () -> new QuoteFake(this));
 	}
 
 }

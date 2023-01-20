@@ -1,4 +1,4 @@
-package it.ru.lanolin.quoter.util;
+package util;
 
 import com.github.springtestdbunit.bean.DatabaseConfigBean;
 import com.github.springtestdbunit.bean.DatabaseDataSourceConnectionFactoryBean;
