@@ -1,10 +1,6 @@
 package it.ru.lanolin.quoter.backend.service;
 
-import com.github.springtestdbunit.DbUnitTestExecutionListener;
-import com.github.springtestdbunit.annotation.DatabaseSetup;
-import it.ru.lanolin.quoter.faker.QuoteServiceFaker;
-import it.ru.lanolin.quoter.util.DbTestUtil;
-import it.ru.lanolin.quoter.util.DbUnitConfiguration;
+import faker.QuoteServiceFaker;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
@@ -12,7 +8,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.TestExecutionListeners;
@@ -21,36 +16,28 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.context.support.DirtiesContextTestExecutionListener;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
-import org.springframework.transaction.annotation.Transactional;
 import ru.lanolin.quoter.QuotersLibraryApplication;
 import ru.lanolin.quoter.backend.domain.UserEntity;
 import ru.lanolin.quoter.backend.domain.UserRoles;
 import ru.lanolin.quoter.backend.exceptions.domain.IncorrectField;
 import ru.lanolin.quoter.backend.service.UserEntityService;
+import util.DbTestUtil;
 
 import java.sql.SQLException;
 import java.util.*;
 import java.util.stream.IntStream;
 
-import static it.ru.lanolin.quoter.util.Utils.MAX_USER_ENTITIES;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static util.Utils.MAX_USER_ENTITIES;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = { QuotersLibraryApplication.class, DbUnitConfiguration.class })
-@AutoConfigureMockMvc
-@TestPropertySource(locations = {
-		"classpath:application-integrationtest.properties"
-})
+@SpringBootTest(classes = {QuotersLibraryApplication.class})
+@TestPropertySource(locations = {"classpath:application-integrationtest.properties"})
 @TestExecutionListeners({
 		DependencyInjectionTestExecutionListener.class,
 		DirtiesContextTestExecutionListener.class,
-		TransactionalTestExecutionListener.class,
-		DbUnitTestExecutionListener.class
+		TransactionalTestExecutionListener.class
 })
-@Transactional
-@DatabaseSetup("classpath:user-data.xml")
 @DisplayName("Integration test UserEntityService class")
 @Tags({
 		@Tag("integration_test"),
@@ -75,21 +62,24 @@ class UserEntityServiceTest {
 
 	@BeforeEach
 	void setUp() throws SQLException {
-		DbTestUtil.resetAutoIncrementColumns(applicationContext,
-				new DbTestUtil.SequenceInfo("user_entity", MAX_USER_ENTITIES + 1)
-		);
+		DbTestUtil.generateUserEntityInDb(applicationContext, faker);
+	}
+
+	@AfterEach
+	void tearDown() throws SQLException {
+		DbTestUtil.dropUserEntities(applicationContext);
 	}
 
 	private UserEntity getUserEntity(int id) {
 		// WHEN
 		Optional<UserEntity> one = userEntityService.getOne(id);
 		// THEN
-		assumeTrue(one.isPresent());
+		assertTrue(one.isPresent());
 
 		// WHEN
 		UserEntity userEntity = one.get();
 		// THEN
-		assumeTrue(id == userEntity.getId());
+		assertEquals(id, (int) userEntity.getId());
 		return userEntity;
 	}
 
@@ -102,7 +92,7 @@ class UserEntityServiceTest {
 		List<UserEntity> all = new ArrayList<>(userEntityService.findAll());
 		all.sort(Comparator.comparing(UserEntity::getId));
 		//THEN
-		assumeFalse(0 == all.size());
+		assertNotEquals(0, all.size());
 
 		assertEquals(MAX_USER_ENTITIES, all.size());
 		assertAll(IntStream.range(0, MAX_USER_ENTITIES)
@@ -266,16 +256,17 @@ class UserEntityServiceTest {
 		UserEntity userEntity = getUserEntity(id);
 		UserRoles roleDel = faker.options().nextElement(new ArrayList<>(userEntity.getRoles()));
 		userEntity.getRoles().remove(roleDel);
+		if(userEntity.getRoles().size() == 0) {userEntity.getRoles().add(UserRoles.GUEST);}
 		UserEntity update = Assertions.assertDoesNotThrow(() -> userEntityService.update(id, userEntity));
 
 		assertAll(
 				() -> assertEquals(id, update.getId()),
 				() -> assertNotNull(update.getRoles()),
-				() -> assertEquals(userEntity.getRoles().size(), update.getRoles().size()),
 				() -> assertEquals(userEntity.getName(), update.getName()),
 				() -> assertEquals(userEntity.getLogin(), update.getLogin()),
 				() -> assertEquals(userEntity.getPassword(), update.getPassword()),
 				() -> assertEquals(userEntity.getImg(), update.getImg()),
+				() -> assertEquals(userEntity.getRoles().size(), update.getRoles().size()),
 				() -> assertEquals(userEntity.getRoles(), update.getRoles())
 		);
 	}
@@ -311,7 +302,7 @@ class UserEntityServiceTest {
 		// GIVEN
 		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
 
-		assumeTrue(userEntityService.getOne(id).isPresent());
+		assertTrue(userEntityService.getOne(id).isPresent());
 
 		// WHEN
 		int beforeDel = userEntityService.findAll().size();
@@ -332,7 +323,7 @@ class UserEntityServiceTest {
 		// GIVEN
 		int id = rnd.nextInt(1, MAX_USER_ENTITIES + 1);
 		UserEntity deleteEntity = new UserEntity(id, null, null, null, null, null);
-		assumeTrue(userEntityService.getOne(id).isPresent());
+		assertTrue(userEntityService.getOne(id).isPresent());
 
 		// WHEN
 		int beforeDel = userEntityService.findAll().size();
