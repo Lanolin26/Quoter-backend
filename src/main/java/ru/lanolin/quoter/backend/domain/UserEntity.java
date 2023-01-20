@@ -41,7 +41,7 @@ public class UserEntity extends IdentificationClass<Integer, UserEntityDto> {
 	private String img;
 
 	@Enumerated(EnumType.STRING)
-	@ElementCollection
+	@ElementCollection(fetch = FetchType.EAGER)
 	private Set<UserRoles> roles = new HashSet<>();
 
 	public UserEntity(Integer id) {
