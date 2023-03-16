@@ -6,7 +6,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.SortDefault;
 import org.springframework.web.bind.annotation.*;
+import ru.lanolin.quoter.backend.domain.dto.QuoteEntityIdsInfoDto;
 import ru.lanolin.quoter.backend.domain.view.QuoteEntityIdsInfo;
+import ru.lanolin.quoter.backend.domain.view.QuoteEntityIdsInfoImpl;
 import ru.lanolin.quoter.backend.domain.view.QuoteEntityInfo;
 import ru.lanolin.quoter.backend.service.QuoteEntityService;
 
@@ -56,20 +58,20 @@ public class QuoteEntityControllerV2 {
     }
 
     @PutMapping(value = "", consumes = "application/json", produces = "application/json")
-    public QuoteEntityIdsInfo create(@RequestBody QuoteEntityIdsInfo entity) {
-        QuoteEntityIdsInfo create = quoterEntityService.create(entity);
+    public QuoteEntityIdsInfo create(@RequestBody QuoteEntityIdsInfoDto entity) {
+        QuoteEntityIdsInfo create = quoterEntityService.create(new QuoteEntityIdsInfoImpl(entity));
         return create;
     }
 
     @PostMapping(value = "{id}", consumes = "application/json", produces = "application/json")
-    public QuoteEntityIdsInfo update(@PathVariable Integer id, @RequestBody QuoteEntityIdsInfo entity) {
-        QuoteEntityIdsInfo update = quoterEntityService.update(id, entity);
+    public QuoteEntityIdsInfo update(@PathVariable Integer id, @RequestBody QuoteEntityIdsInfoDto entity) {
+        QuoteEntityIdsInfo update = quoterEntityService.update(id, new QuoteEntityIdsInfoImpl(entity));
         return update;
     }
 
     @DeleteMapping(value = "", consumes = "application/json")
-    public void delete(@RequestBody QuoteEntityIdsInfo entity) {
-        quoterEntityService.delete(entity);
+    public void delete(@RequestBody QuoteEntityIdsInfoDto entity) {
+        quoterEntityService.delete(new QuoteEntityIdsInfoImpl(entity));
     }
 
     @DeleteMapping(value = "{id}")

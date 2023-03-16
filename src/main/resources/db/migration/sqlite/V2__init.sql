@@ -24,7 +24,7 @@ create table quote_source_type_entity
     id   integer not null
         constraint quote_source_type_entity_pk
             primary key autoincrement,
-    type text default not null
+    type text not null
 );
 
 create table quote_source_entity

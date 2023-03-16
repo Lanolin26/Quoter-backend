@@ -4,6 +4,7 @@ import ru.lanolin.quoter.backend.domain.QuoteEntity;
 import ru.lanolin.quoter.backend.domain.QuoteSource;
 import ru.lanolin.quoter.backend.domain.QuoteSourceType;
 import ru.lanolin.quoter.backend.domain.UserEntity;
+import ru.lanolin.quoter.backend.domain.dto.QuoteEntityIdsInfoDto;
 
 import java.util.Optional;
 
@@ -17,6 +18,10 @@ public class QuoteEntityIdsInfoImpl implements QuoteEntityIdsInfo {
 
     public QuoteEntityIdsInfoImpl(Integer id, String text, Integer sourceId, Integer authorId) {
         this.quoteEntity = new QuoteEntity(id, text, new UserEntity(authorId), new QuoteSource(sourceId));
+    }
+
+    public QuoteEntityIdsInfoImpl(QuoteEntityIdsInfoDto dto) {
+        this.quoteEntity = new QuoteEntity(dto.id(), dto.text(), new UserEntity(dto.authorId()), new QuoteSource(dto.sourceId()));
     }
 
     @Override
