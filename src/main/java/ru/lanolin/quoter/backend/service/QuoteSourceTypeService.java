@@ -100,7 +100,7 @@ public class QuoteSourceTypeService {
         repo.deleteById(id);
     }
 
-    @SuppressWarnings({ "unchecked" })
+    @SuppressWarnings({"unchecked"})
     public void checkCorrect(QuoteSourceType entity) throws IncorrectField {
         for (CheckArgs<QuoteSourceType> eCheckArgs : ARGS_LIST) {
             if (eCheckArgs.func().test(entity)) {
@@ -113,4 +113,7 @@ public class QuoteSourceTypeService {
         inDbEntity.setType(entity.getType());
     }
 
+    public Optional<QuoteSourceType> search(String query) {
+        return repo.searchQuoteSourceTypeByType("%" + query + "%");
+    }
 }

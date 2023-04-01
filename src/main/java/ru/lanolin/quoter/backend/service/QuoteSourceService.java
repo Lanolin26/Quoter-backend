@@ -107,4 +107,7 @@ public class QuoteSourceService {
         }
     }
 
+    public Optional<QuoteSource> search(String query) {
+        return repo.searchQuoteSourceBySourceName("%" + query + "%");
+    }
 }

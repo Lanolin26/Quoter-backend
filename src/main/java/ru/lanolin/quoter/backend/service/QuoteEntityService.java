@@ -70,6 +70,10 @@ public class QuoteEntityService {
         );
     }
 
+    public List<QuoteEntityInfo> search(String query) {
+        return repo.searchQuoteEntityByText("%" + query + "%");
+    }
+
     public Page<QuoteEntity> findAll(Pageable page) {
         return repo.findAll(page);
     }

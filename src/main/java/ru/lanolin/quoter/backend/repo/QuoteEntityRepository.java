@@ -93,4 +93,20 @@ public interface QuoteEntityRepository extends JpaRepository<QuoteEntity, Intege
                 join QuoteSource qse on qse.id = qe.source.id
             """)
     List<QuoteEntityIdsInfo> getQuoteEntityIdsInfo();
+
+    @Query("""
+            select qe.id            as id,
+                    qe.text         as text,
+                    ue.login        as authorLogin,
+                    ue.name         as authorName,
+                    qse.sourceName  as sourceName,
+                    qste.type       as sourceType
+            from QuoteEntity qe
+                join UserEntity ue on ue.id = qe.author.id
+                join QuoteSource qse on qse.id = qe.source.id
+                join QuoteSourceType qste on qste.id = qe.source.type.id
+            where qe.text like ?1
+            """)
+    List<QuoteEntityInfo> searchQuoteEntityByText(String query);
+
 }
