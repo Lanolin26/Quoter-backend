@@ -1,43 +1,31 @@
 package ru.lanolin.quoter.backend.service;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.DataBinder;
 import ru.lanolin.quoter.backend.domain.QuoteSource;
 import ru.lanolin.quoter.backend.domain.QuoteSourceType;
-import ru.lanolin.quoter.backend.exceptions.domain.CheckArgs;
+import ru.lanolin.quoter.backend.domain.validators.QuoteSourceValidator;
 import ru.lanolin.quoter.backend.exceptions.domain.IncorrectField;
 import ru.lanolin.quoter.backend.repo.QuoteSourceRepository;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 @Service
+@RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class QuoteSourceService {
-
-    private final List<CheckArgs<QuoteSource>> ARGS_LIST = List.of(
-            new CheckArgs<>(Objects::isNull,
-                    "class", "null", "Entity mustn't be a null"),
-            new CheckArgs<>(e -> Objects.isNull(e.getSourceName()) || e.getSourceName().isEmpty() || e.getSourceName().isBlank(),
-                    "Source_Name", "empty", "Not available empty value"),
-            new CheckArgs<>(e -> Objects.isNull(e.getType()) || Objects.isNull(e.getType().getId()),
-                    "type", "empty", "Type is empty"),
-            new CheckArgs<>(Predicate.not(this::existType),
-                    "type", "not_found", "Valid type not found")
-    );
 
     private final QuoteSourceRepository repo;
     private final QuoteSourceTypeService sourceTypeService;
-
-    @Autowired
-    public QuoteSourceService(QuoteSourceRepository repo, QuoteSourceTypeService sourceTypeService) {
-        this.repo = repo;
-        this.sourceTypeService = sourceTypeService;
-    }
+    private final QuoteSourceValidator validator;
 
     private boolean existType(QuoteSource e) {
         return this.sourceTypeService.exist(e.getType());
@@ -98,12 +86,13 @@ public class QuoteSourceService {
         repo.deleteById(id);
     }
 
-    @SuppressWarnings({"unchecked"})
     public void checkCorrect(QuoteSource entity) throws IncorrectField {
-        for (CheckArgs<QuoteSource> eCheckArgs : ARGS_LIST) {
-            if (eCheckArgs.func().test(entity)) {
-                throw eCheckArgs.createException((Class<QuoteSource>) entity.getClass());
-            }
+        DataBinder dataBinder = new DataBinder(entity, "source");
+        dataBinder.addValidators(validator);
+        dataBinder.validate();
+        BindingResult bindingResult = dataBinder.getBindingResult();
+        if(bindingResult.hasErrors()) {
+            throw new IncorrectField(new BindException(bindingResult));
         }
     }
 

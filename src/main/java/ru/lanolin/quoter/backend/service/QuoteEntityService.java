@@ -1,55 +1,36 @@
 package ru.lanolin.quoter.backend.service;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.DataBinder;
 import ru.lanolin.quoter.backend.domain.QuoteEntity;
 import ru.lanolin.quoter.backend.domain.QuoteSource;
 import ru.lanolin.quoter.backend.domain.UserEntity;
+import ru.lanolin.quoter.backend.domain.validators.QuoteEntityValidator;
 import ru.lanolin.quoter.backend.domain.view.QuoteEntityIdsInfo;
 import ru.lanolin.quoter.backend.domain.view.QuoteEntityInfo;
 import ru.lanolin.quoter.backend.exceptions.NotFoundException;
-import ru.lanolin.quoter.backend.exceptions.domain.CheckArgs;
 import ru.lanolin.quoter.backend.exceptions.domain.IncorrectField;
 import ru.lanolin.quoter.backend.repo.QuoteEntityRepository;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 @Service
+@RequiredArgsConstructor(onConstructor_ = {@Autowired})
 public class QuoteEntityService {
-
-    private final List<CheckArgs<QuoteEntity>> checkArgs = List.of(
-            new CheckArgs<>(Objects::isNull,
-                    "class", "null", "Entity mustn't be a null"),
-            new CheckArgs<>(e -> Objects.isNull(e.getText()) || e.getText().isEmpty() || e.getText().isBlank(),
-                    "text", "empty", "Not available empty value"),
-            new CheckArgs<>(e -> Objects.isNull(e.getSource()) || Objects.isNull(e.getSource().getId()),
-                    "source", "empty", "Not available empty value"),
-            new CheckArgs<>(e -> Objects.isNull(e.getAuthor()) || Objects.isNull(e.getAuthor().getId()),
-                    "author", "empty", "Not available empty value"),
-            new CheckArgs<>(Predicate.not(this::existSource),
-                    "source", "not_found", "Not found valid entity"),
-            new CheckArgs<>(Predicate.not(this::existAuthor),
-                    "author", "not_found", "Not found valid entity")
-    );
 
     private final QuoteEntityRepository repo;
     private final QuoteSourceService quoteSourceService;
     private final UserEntityService userService;
-
-    @Autowired
-    public QuoteEntityService(QuoteEntityRepository repo,
-                              QuoteSourceService quoteSourceService,
-                              UserEntityService userService) {
-        this.repo = repo;
-        this.quoteSourceService = quoteSourceService;
-        this.userService = userService;
-    }
+    private final QuoteEntityValidator validator;
 
     private boolean existSource(QuoteEntity e) {
         return this.quoteSourceService.exist(e.getSource());
@@ -183,12 +164,13 @@ public class QuoteEntityService {
         repo.deleteById(id);
     }
 
-    @SuppressWarnings({"unchecked"})
     public void checkCorrect(QuoteEntity entity) throws IncorrectField {
-        for (CheckArgs<QuoteEntity> eCheckArgs : checkArgs) {
-            if (eCheckArgs.func().test(entity)) {
-                throw eCheckArgs.createException((Class<QuoteEntity>) entity.getClass());
-            }
+        DataBinder dataBinder = new DataBinder(entity, "quote");
+        dataBinder.addValidators(validator);
+        dataBinder.validate();
+        BindingResult bindingResult = dataBinder.getBindingResult();
+        if(bindingResult.hasErrors()) {
+            throw new IncorrectField(new BindException(bindingResult));
         }
     }
 
