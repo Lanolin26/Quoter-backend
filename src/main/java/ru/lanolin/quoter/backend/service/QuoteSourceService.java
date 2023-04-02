@@ -27,10 +27,6 @@ public class QuoteSourceService {
     private final QuoteSourceTypeService sourceTypeService;
     private final QuoteSourceValidator validator;
 
-    private boolean existType(QuoteSource e) {
-        return this.sourceTypeService.exist(e.getType());
-    }
-
     public void copyProperties(QuoteSource entity, QuoteSource inDbEntity) {
         inDbEntity.setSourceName(entity.getSourceName());
         inDbEntity.setType(new QuoteSourceType(entity.getType().getId()));

@@ -32,14 +32,6 @@ public class QuoteEntityService {
     private final UserEntityService userService;
     private final QuoteEntityValidator validator;
 
-    private boolean existSource(QuoteEntity e) {
-        return this.quoteSourceService.exist(e.getSource());
-    }
-
-    private boolean existAuthor(QuoteEntity e) {
-        return this.userService.exist(e.getAuthor());
-    }
-
     public void copyProperties(QuoteEntity entity, QuoteEntity inDbEntity) {
         inDbEntity.setSource(new QuoteSource(entity.getSource().getId()));
         inDbEntity.setAuthor(new UserEntity(entity.getAuthor().getId()));
