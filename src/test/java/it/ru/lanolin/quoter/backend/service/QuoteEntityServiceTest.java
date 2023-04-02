@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -74,6 +75,8 @@ class QuoteEntityServiceTest {
     private QuoteSourceService quoteSourceService;
     @Autowired
     private UserEntityService userEntityService;
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @BeforeAll
     static void beforeAll() {
@@ -83,7 +86,7 @@ class QuoteEntityServiceTest {
 
     @BeforeEach
     void setUp() throws SQLException {
-        DbTestUtil.generateUserEntityInDb(applicationContext, faker);
+        DbTestUtil.generateUserEntityInDb(applicationContext, faker, bCryptPasswordEncoder);
         DbTestUtil.generateQuoteSourceTypeInDb(applicationContext, faker);
         DbTestUtil.generateQuoteSourceInDb(applicationContext, faker);
         DbTestUtil.generateQuoteEntityInDb(applicationContext, faker);

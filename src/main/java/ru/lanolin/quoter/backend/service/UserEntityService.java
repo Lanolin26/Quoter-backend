@@ -29,6 +29,14 @@ public class UserEntityService {
     private final UserValidator validator;
 
     private void setPasswordInEntity(UserEntity entity, String password) {
+        try{
+            bCryptPasswordEncoder.upgradeEncoding(password);
+        }catch (IllegalArgumentException ignored) {
+            cryptPassword(entity, password);
+        }
+    }
+
+    private void cryptPassword(UserEntity entity, String password) {
         String encode = bCryptPasswordEncoder.encode(password);
         entity.setPassword(encode);
     }
