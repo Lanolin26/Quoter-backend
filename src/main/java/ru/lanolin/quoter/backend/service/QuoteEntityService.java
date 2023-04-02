@@ -28,8 +28,6 @@ import java.util.Optional;
 public class QuoteEntityService {
 
     private final QuoteEntityRepository repo;
-    private final QuoteSourceService quoteSourceService;
-    private final UserEntityService userService;
     private final QuoteEntityValidator validator;
 
     public void copyProperties(QuoteEntity entity, QuoteEntity inDbEntity) {

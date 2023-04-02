@@ -24,7 +24,6 @@ import java.util.Optional;
 public class QuoteSourceService {
 
     private final QuoteSourceRepository repo;
-    private final QuoteSourceTypeService sourceTypeService;
     private final QuoteSourceValidator validator;
 
     public void copyProperties(QuoteSource entity, QuoteSource inDbEntity) {
