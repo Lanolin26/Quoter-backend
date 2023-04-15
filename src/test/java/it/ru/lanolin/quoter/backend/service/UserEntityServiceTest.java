@@ -8,9 +8,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -62,11 +63,12 @@ class UserEntityServiceTest {
     private UserEntityService userEntityService;
 
     @Autowired
-    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    @Qualifier("instancePasswordEncoder")
+    private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setUp() throws SQLException {
-        DbTestUtil.generateUserEntityInDb(applicationContext, faker, bCryptPasswordEncoder);
+        DbTestUtil.generateUserEntityInDb(applicationContext, faker, passwordEncoder);
     }
 
     @AfterEach
@@ -90,7 +92,7 @@ class UserEntityServiceTest {
     private void assertEqualsPassword(String newValue, String inDBPassword) {
         assertTrue(
                 newValue.equalsIgnoreCase(inDBPassword)
-                        || bCryptPasswordEncoder.matches(newValue, inDBPassword),
+                        || passwordEncoder.matches(newValue, inDBPassword),
                 "Not equals PASSWORD field");
     }
 

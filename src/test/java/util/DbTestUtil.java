@@ -6,7 +6,7 @@ import faker.QuoteSourceFake;
 import net.datafaker.service.RandomService;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.lanolin.quoter.backend.domain.*;
 
 import javax.sql.DataSource;
@@ -170,7 +170,7 @@ public final class DbTestUtil {
         return environment.getRequiredProperty("test.reset.sql.template");
     }
 
-    public static void generateUserEntityInDb(ApplicationContext applicationContext, QuoteServiceFaker faker, BCryptPasswordEncoder encoder) throws SQLException {
+    public static void generateUserEntityInDb(ApplicationContext applicationContext, QuoteServiceFaker faker, PasswordEncoder encoder) throws SQLException {
         List<UserEntity> userEntities = IntStream.range(0, MAX_USER_ENTITIES)
                 .mapToObj(i -> faker.userEntity().userEntity(i + 1))
                 .peek(user -> user.setPassword(encoder.encode(user.getPassword())))
