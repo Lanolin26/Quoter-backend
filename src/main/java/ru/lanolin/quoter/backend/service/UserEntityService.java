@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
@@ -25,19 +25,19 @@ import java.util.Optional;
 public class UserEntityService {
 
     private final UserEntityRepository repo;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final PasswordEncoder passwordEncoder;
     private final UserValidator validator;
 
     private void setPasswordInEntity(UserEntity entity, String password) {
         try{
-            bCryptPasswordEncoder.upgradeEncoding(password);
+            passwordEncoder.upgradeEncoding(password);
         }catch (IllegalArgumentException ignored) {
             cryptPassword(entity, password);
         }
     }
 
     private void cryptPassword(UserEntity entity, String password) {
-        String encode = bCryptPasswordEncoder.encode(password);
+        String encode = passwordEncoder.encode(password);
         entity.setPassword(encode);
     }
 

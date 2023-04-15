@@ -1,5 +1,6 @@
 package ru.lanolin.quoter.backend.security;
 
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.apachecommons.CommonsLog;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,7 @@ public class SecurityServiceImpl implements SecurityService {
 
     private final AuthenticationManager authenticationManager;
     private final UserService userService;
+    private final JwtTokenRepository tokenRepository;
 
     @Override
     public Optional<String> findLoggedInUsername() {
@@ -28,7 +30,7 @@ public class SecurityServiceImpl implements SecurityService {
     }
 
     @Override
-    public void autoLogin(String username, String password) {
+    public boolean autoLogin(String username, String password) {
         UserDetails userDetails = userService.loadUserByUsername(username);
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                 new UsernamePasswordAuthenticationToken(userDetails, password, userDetails.getAuthorities());
@@ -38,6 +40,17 @@ public class SecurityServiceImpl implements SecurityService {
         if (usernamePasswordAuthenticationToken.isAuthenticated()) {
             SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
             log.debug(String.format("Auto login %s successfully!", username));
+            return true;
         }
+        return false;
+    }
+
+    @Override
+    public void autoTokenLogin(String token) {
+        String username = tokenRepository.extractClaim(token, Claims::getIssuer);
+        UserDetails userDetails = userService.loadUserByUsername(username);
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
+                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
     }
 }

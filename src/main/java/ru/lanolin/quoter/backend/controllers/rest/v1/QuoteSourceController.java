@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.SortDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.lanolin.quoter.backend.domain.IdentificationClass;
 import ru.lanolin.quoter.backend.domain.QuoteSource;
@@ -27,7 +28,8 @@ public class QuoteSourceController {
 		this.quoteSourceService = quoteSourceService;
 	}
 
-	@GetMapping(value = "", params = { "page", "size" }, produces = "application/json")
+	@GetMapping(value = "", params = {"page", "size"}, produces = "application/json")
+	@PreAuthorize("hasAnyAuthority('ADMIN', 'EDITOR', 'GUEST', 'ANON')")
 	public Page<QuoteSourceDto> findAllWithPagination(@SortDefault(sort = "id", direction = Sort.Direction.ASC) Pageable page) {
 		return quoteSourceService
 				.findAll(page)
@@ -35,6 +37,7 @@ public class QuoteSourceController {
 	}
 
 	@GetMapping(value = "", produces = "application/json")
+	@PreAuthorize("hasAnyAuthority('ADMIN', 'EDITOR', 'GUEST', 'ANON')")
 	public List<QuoteSourceDto> findAll() {
 		return quoteSourceService
 				.findAll()
@@ -44,6 +47,7 @@ public class QuoteSourceController {
 	}
 
 	@GetMapping(value = "{id}", produces = "application/json")
+	@PreAuthorize("hasAnyAuthority('ADMIN', 'EDITOR', 'GUEST', 'ANON')")
 	public Optional<QuoteSourceDto> getOne(@PathVariable Integer id) {
 		return quoteSourceService
 				.getOne(id)
@@ -51,12 +55,14 @@ public class QuoteSourceController {
 	}
 
 	@PutMapping(value = "", consumes = "application/json", produces = "application/json")
+	@PreAuthorize("hasAnyAuthority('ADMIN', 'EDITOR')")
 	public QuoteSourceDto create(@RequestBody QuoteSourceDto entity) {
 		QuoteSource create = quoteSourceService.create(entity.entity());
 		return getOne(create.getId()).orElseThrow(NotFoundException::new);
 	}
 
 	@PostMapping(value = "{id}", consumes = "application/json", produces = "application/json")
+	@PreAuthorize("hasAnyAuthority('ADMIN', 'EDITOR')")
 	public QuoteSourceDto update(@PathVariable Integer id, @RequestBody QuoteSourceDto entity) {
 		QuoteSource update = quoteSourceService.update(id, entity.entity());
 		return quoteSourceService
@@ -66,11 +72,13 @@ public class QuoteSourceController {
 	}
 
 	@DeleteMapping(value = "", consumes = "application/json")
+	@PreAuthorize("hasAnyAuthority('ADMIN', 'EDITOR')")
 	public void delete(@RequestBody QuoteSourceDto entity) {
 		quoteSourceService.delete(entity.entity());
 	}
 
 	@DeleteMapping(value = "{id}")
+	@PreAuthorize("hasAnyAuthority('ADMIN', 'EDITOR')")
 	public void deleteById(@PathVariable Integer id) {
 		quoteSourceService.deleteById(id);
 	}

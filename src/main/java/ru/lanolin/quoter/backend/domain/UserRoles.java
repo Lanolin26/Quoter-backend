@@ -1,5 +1,12 @@
 package ru.lanolin.quoter.backend.domain;
 
-public enum UserRoles {
-	ADMIN, EDITOR, GUEST
+import org.springframework.security.core.GrantedAuthority;
+
+public enum UserRoles implements GrantedAuthority {
+	ADMIN, EDITOR, GUEST, ANON;
+
+	@Override
+	public String getAuthority() {
+		return this.name();
+	}
 }

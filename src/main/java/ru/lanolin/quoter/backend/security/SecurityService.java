@@ -6,6 +6,7 @@ public interface SecurityService {
 
     Optional<String> findLoggedInUsername();
 
-    void autoLogin(String username, String password);
+    boolean autoLogin(String username, String password);
 
+    void autoTokenLogin(String validToken);
 }

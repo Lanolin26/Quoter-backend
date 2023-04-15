@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.SortDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.lanolin.quoter.backend.domain.IdentificationClass;
 import ru.lanolin.quoter.backend.domain.QuoteEntity;
@@ -28,6 +29,7 @@ public class QuoteEntityController {
     }
 
     @GetMapping(value = "", params = {"page", "size"}, produces = "application/json")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EDITOR', 'GUEST', 'ANON')")
     public Page<QuoteEntityDto> findAllWithPagination(@SortDefault(sort = "id", direction = Sort.Direction.ASC) Pageable page) {
         return quoterEntityService
                 .findAll(page)
@@ -35,6 +37,7 @@ public class QuoteEntityController {
     }
 
     @GetMapping(value = "", produces = "application/json")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EDITOR', 'GUEST', 'ANON')")
     public List<QuoteEntityDto> findAll() {
         return quoterEntityService
                 .findAll()
@@ -44,6 +47,7 @@ public class QuoteEntityController {
     }
 
     @GetMapping(value = "{id}", produces = "application/json")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EDITOR', 'GUEST', 'ANON')")
     public Optional<QuoteEntityDto> getOne(@PathVariable Integer id) {
         return quoterEntityService
                 .getOne(id)
@@ -51,12 +55,14 @@ public class QuoteEntityController {
     }
 
     @PutMapping(value = "", consumes = "application/json", produces = "application/json")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EDITOR')")
     public QuoteEntityDto create(@RequestBody QuoteEntityDto entity) {
         QuoteEntity create = quoterEntityService.create(entity.entity());
         return getOne(create.getId()).orElseThrow(NotFoundException::new);
     }
 
     @PostMapping(value = "{id}", consumes = "application/json", produces = "application/json")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EDITOR')")
     public QuoteEntityDto update(@PathVariable Integer id, @RequestBody QuoteEntityDto entity) {
         QuoteEntity update = quoterEntityService.update(id, entity.entity());
         return quoterEntityService
@@ -66,11 +72,13 @@ public class QuoteEntityController {
     }
 
     @DeleteMapping(value = "", consumes = "application/json")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EDITOR')")
     public void delete(@RequestBody QuoteEntityDto entity) {
         quoterEntityService.delete(entity.entity());
     }
 
     @DeleteMapping(value = "{id}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'EDITOR')")
     public void deleteById(@PathVariable Integer id) {
         quoterEntityService.deleteById(id);
     }

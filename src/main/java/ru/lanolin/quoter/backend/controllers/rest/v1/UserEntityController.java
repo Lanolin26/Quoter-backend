@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.SortDefault;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.lanolin.quoter.backend.domain.IdentificationClass;
 import ru.lanolin.quoter.backend.domain.UserEntity;
@@ -27,7 +28,8 @@ public class UserEntityController {
 		this.userEntityService = userEntityService;
 	}
 
-	@GetMapping(value = "", params = { "page", "size" }, produces = "application/json")
+	@GetMapping(value = "", params = {"page", "size"}, produces = "application/json")
+	@PreAuthorize("hasAnyAuthority('ADMIN')")
 	public Page<UserEntityDto> findAllWithPagination(@SortDefault(sort = "id", direction = Sort.Direction.ASC) Pageable page) {
 		return userEntityService
 				.findAll(page)
@@ -35,6 +37,7 @@ public class UserEntityController {
 	}
 
 	@GetMapping(value = "", produces = "application/json")
+	@PreAuthorize("hasAnyAuthority('ADMIN')")
 	public List<UserEntityDto> findAll() {
 		return userEntityService
 				.findAll()
@@ -44,6 +47,7 @@ public class UserEntityController {
 	}
 
 	@GetMapping(value = "{id}", produces = "application/json")
+	@PreAuthorize("hasAnyAuthority('ADMIN')")
 	public Optional<UserEntityDto> getOne(@PathVariable Integer id) {
 		return userEntityService
 				.getOne(id)
@@ -51,12 +55,14 @@ public class UserEntityController {
 	}
 
 	@PutMapping(value = "", consumes = "application/json", produces = "application/json")
+	@PreAuthorize("hasAnyAuthority('ADMIN')")
 	public UserEntityDto create(@RequestBody UserEntityDto entity) {
 		UserEntity create = userEntityService.create(entity.entity());
 		return getOne(create.getId()).orElseThrow(NotFoundException::new);
 	}
 
 	@PostMapping(value = "{id}", consumes = "application/json", produces = "application/json")
+	@PreAuthorize("hasAnyAuthority('ADMIN')")
 	public UserEntityDto update(@PathVariable Integer id, @RequestBody UserEntityDto entity) {
 		UserEntity update = userEntityService.update(id, entity.entity());
 		return userEntityService
@@ -66,11 +72,13 @@ public class UserEntityController {
 	}
 
 	@DeleteMapping(value = "", consumes = "application/json")
+	@PreAuthorize("hasAnyAuthority('ADMIN')")
 	public void delete(@RequestBody UserEntityDto entity) {
 		userEntityService.delete(entity.entity());
 	}
 
 	@DeleteMapping(value = "{id}")
+	@PreAuthorize("hasAnyAuthority('ADMIN')")
 	public void deleteById(@PathVariable Integer id) {
 		userEntityService.deleteById(id);
 	}
